@@ -19,7 +19,7 @@ The design is intentionally editorial: a deep teal-blue brand colour on cool off
 
 A Figma version is included as a **development plugin** that builds the design inside your own Figma file. It creates nine screens (seven desktop, two mobile) plus a design-system page with reusable colour/type styles, buttons, form fields, tags and icons.
 
-- Plugin package: [`summit-general-hospital-figma-plugin.zip`](summit-general-hospital-figma-plugin.zip)
+- Plugin source: [`figma-plugin/`](figma-plugin/build.mjs). The `summit-general-hospital-figma-plugin.zip` archive is built locally from it and is not committed.
 - Step-by-step guide: [`FIGMA.md`](FIGMA.md)
 - Design system preview: [`preview/figma-design-system.jpg`](preview/figma-design-system.jpg)
 
@@ -79,7 +79,7 @@ Then open <http://127.0.0.1:8787>.
 
 1. **Back up** the current `public_html` (especially if a Site Builder site is live).
 2. In cPanel → **File Manager**, open `public_html`.
-3. Upload the **contents of `dist/`** (not the `dist` folder itself) and extract, or upload `summit-general-hospital-site.zip` and extract it in place.
+3. Upload the **contents of `dist/`** (not the `dist` folder itself) and extract, or upload a zip of the same contents and extract it in place.
 4. Make sure `index.html` sits directly in `public_html`, alongside `assets/`, `send.php`, `.htaccess`, etc.
 5. Enable **Show Hidden Files** in File Manager so `.htaccess` is uploaded.
 6. Visit your domain. If you see the old Site Builder page, clear the cPanel/Site Builder cache or remove the old `index.html`/builder files after taking the backup.
@@ -199,18 +199,12 @@ The department list is in `src/pages/appointment.html` (the `#department` select
 
 The doctor list is also in the appointment page: each `<option>` has a `data-department` that must match the department value exactly. Update the `$departments` whitelist in `send.php` too.
 
-### Map pin
+### Map image
 
-The pin position is CSS, not embedded in the image. Adjust:
-
-```css
-.map-card__pin {
-  left: 59.6%;
-  top: 50.3%;
-}
-```
-
-If you replace `assets/img/map-bole.webp`, keep a similar aspect ratio (8:5) or adjust the pin percentages to match.
+The hospital marker and its label are part of `assets/img/map-summit.jpg`
+(1200 × 750, 8:5), not CSS — the card only overlays the “Open in Google Maps” button
+and the address label. If you re-capture or replace the image, keep the 8:5 shape so
+the card crops the same way, and keep the “Map data © Google” credit.
 
 ---
 
@@ -221,7 +215,7 @@ If you replace `assets/img/map-bole.webp`, keep a similar aspect ratio (8:5) or 
 - `prefers-reduced-motion` support for reveal animations and smooth scrolling.
 - Colour contrast checked for body text, small labels and links on the ivory/sand backgrounds.
 - Per-page titles, descriptions, canonical URLs, Open Graph/Twitter cards and `Hospital` JSON-LD.
-- `sitemap.xml`, `robots.txt`, 404 page, `.htaccess` caching/compression and a local OpenStreetMap image (no third-party map iframe to slow the page or set cookies).
+- `sitemap.xml`, `robots.txt`, 404 page, `.htaccess` caching/compression and a local Google Maps screenshot (no third-party map iframe to slow the page or set cookies).
 - Images are local WebP files with width/height attributes; fonts are self-hosted.
 
 ---
@@ -235,7 +229,7 @@ If you replace `assets/img/map-bole.webp`, keep a similar aspect ratio (8:5) or 
   `photo-1519494026892-80bbd2d6fd0d`, `photo-1551601651-2a8555f1a136`,
   `photo-1579154204601-01588f351e67`, `photo-1538108149393-fbbd81895907`,
   `photo-1580281658626-ee379f3cce93`.
-- **Map:** map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the Open Database License (ODbL). The map image is stored locally and the site displays attribution.
+- **Map:** a screenshot of the Google Maps listing, including the “Map data © Google” credit shown on the card. The image is stored locally, so no map script or cookies load with the page.
 - **Fonts:** [Montserrat](https://fonts.google.com/specimen/Montserrat), SIL Open Font License 1.1.
 - **Icons:** custom inline SVG, no third-party icon library.
 - **Build:** hand-written Node script and vanilla CSS/JS, no framework.
@@ -263,8 +257,7 @@ summit-general-hospital/
 │   ├── robots.txt
 │   ├── favicon.ico
 │   └── .htaccess
-├── figma-plugin/             ← Figma design builder source and dist
-├── summit-general-hospital-figma-plugin.zip
+├── figma-plugin/             ← Figma design builder source
 ├── FIGMA.md                  ← Figma install and editing guide
 ├── preview/                  ← design preview images
 ├── public/                   ← static source assets + send.php

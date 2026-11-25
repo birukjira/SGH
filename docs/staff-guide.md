@@ -7,7 +7,8 @@ environment value (see [`deployment.md`](deployment.md)).
 
 Signed-out visitors who open any `/inbox` address are redirected to `/inbox/login`.
 After 5 wrong passwords from the same connection in 15 minutes, sign-in is paused
-until the window passes. Sessions last 12 hours; **Sign out** is in the staff bar.
+until the window passes. Sessions last 12 hours; **Sign out** sits at the top of every
+staff screen, beside the page title.
 
 ## The screens
 

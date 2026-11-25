@@ -2,7 +2,8 @@
 
 There is no separate API server and no client-side fetch layer. The Next.js app in
 `web/` is the whole back end: pages render on the server, read from Cloudflare D1
-directly, and every write is a Server Action or a page-level form post to one.
+directly, and every write goes through a Server Action — posted by a `<form>` on the
+staff screens, or called by the appointment wizard.
 
 ```
 browser
@@ -27,6 +28,11 @@ browser submits <form> ──► server action (POST, same origin)
                               ├─ revalidatePath(...)      public pages re-render
                               └─ redirect(?saved=1)
 ```
+
+The appointment form is the only write that does not come from a form post: its
+wizard validates in the browser and then calls `submitAppointment(values)`. That is
+still a server action running on the server, and `requestAppointment()` re-runs every
+rule from `lib/appointment-slots.ts` before it inserts a row.
 
 ## Why this shape
 
@@ -53,8 +59,8 @@ const db = (env as { DB?: D1DatabaseLike }).DB;   // throws a clear error if mis
   in `next.config.ts` reads the D1 binding from Wrangler's local Miniflare state
   (`web/.wrangler/`). No Cloudflare account is needed to develop; the data lives in
   a local SQLite file.
-- **Deployed** — the same `DB` binding is injected by the hosting environment
-  (`wrangler.jsonc` for a plain Worker; Sites → Storage for the managed deploy).
+- **Deployed** — the Worker reads the same `DB` binding from the `d1_databases` entry
+  in `wrangler.jsonc`.
 
 Because both paths read the same binding name, application code never branches on
 environment.
@@ -66,10 +72,11 @@ environment.
 | `lib/d1.ts` | Resolve the `DB` binding | everything |
 | `lib/db.ts` | Public reads: doctors, department chips, services, booking departments | public pages |
 | `lib/content.ts` | Staff reads plus `parse*Form` validation and `save*` writes for doctors and services | `/inbox/doctors`, `/inbox/services` |
-| `lib/appointments.ts` | Insert and validate appointment requests | `/appointment` |
-| `lib/appointment-queue.ts` | Staff queue queries and status counts | `/inbox/appointments`, staff nav badges |
-| `lib/messages.ts` | Insert and validate contact messages | `/contact` |
-| `lib/inbox.ts` | Staff gate (`isStaff`, `requireStaff`), messages list, status and notes | every `/inbox` route |
+| `lib/appointment-slots.ts` | Booking slots, visit types and the validation rules shared by browser and server (imports no D1 code) | `/appointment` |
+| `lib/appointments.ts` | Re-validate and insert appointment requests | `/appointment` |
+| `lib/appointment-queue.ts` | Staff queue queries, status changes and counts | `/inbox/appointments`, staff nav badges |
+| `lib/messages.ts` | Validate and insert contact messages | `/contact` |
+| `lib/inbox.ts` | Staff gate (`isStaff`, `requireStaff`), sign-in/out with throttling, messages list, status and notes | every `/inbox` route |
 | `lib/format.ts` | Phone/date helpers used by staff screens | staff screens |
 
 Writes are plain SQL through prepared statements with bound parameters. No ORM, no
@@ -112,7 +119,7 @@ user account system:
    so the single shared password cannot be brute-forced. A broken counter never
    locks staff out; it logs and allows the attempt.
 
-Staff pages also set `robots: { index: false }` and are absent from the sitemap.
+Staff pages also set `robots: { index: false, follow: false }`.
 
 ## Client components
 
@@ -121,11 +128,13 @@ Only what genuinely needs the browser is a client component:
 | Component | Why |
 | --- | --- |
 | `DepartmentPicker` | Filters the primary-department select by the ticked checkboxes |
-| `AppointmentForm`, `ContactForm` | Multi-step validation and inline errors before posting |
-| `HeroCarousel`, `ContactRail`, `SiteHeader` | Carousel, mobile rail, menu toggle |
+| `AppointmentForm` | Three-step wizard, inline validation, calls the server action at the end |
+| `ContactForm` | `useActionState` for inline field errors and a status message |
+| `DoctorDirectory`, `ServiceDirectory` | Filter chips and search over data rendered by the server |
+| `HeroCarousel`, `SiteHeader` | Carousel and mobile menu toggle |
 
-Everything else — including the whole doctor form — is a Server Component. Uncontrolled
-inputs plus a Server Action are enough, so forms keep their values through a
+`ContactRail` and the whole doctor form are Server Components: links and uncontrolled
+inputs plus a Server Action are enough, so staff forms keep their values through a
 validation error redirect.
 
 ## Revalidation

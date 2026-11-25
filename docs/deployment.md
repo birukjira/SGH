@@ -62,7 +62,7 @@ the database. `wrangler.jsonc` declares the `DB` binding and the compatibility d
 
 | Name | Where | Purpose |
 | --- | --- | --- |
-| `INBOX_PASSWORD` | hosting environment (Sites → Secrets, or `wrangler secret put`) | the staff inbox password |
+| `INBOX_PASSWORD` | Worker secret: `npx wrangler secret put INBOX_PASSWORD`, or the Cloudflare dashboard | the staff inbox password |
 
 Nothing else is required. `.dev.vars` holds the local value only and is git-ignored;
 never commit a real password.
@@ -72,7 +72,25 @@ never commit a real password.
 1. Create the D1 database and put its id in `wrangler.jsonc` (already done for the
    `summit-general-hospital` database).
 2. Apply the schema and seed: `npm run db:remote`.
-3. Deploy. The binding is injected by the platform; `lib/d1.ts` requires no change.
+3. Deploy (below). The Worker reads the same `DB` binding; `lib/d1.ts` requires no change.
+
+### Deploy
+
+`wrangler.jsonc` points the Worker at `.open-next/worker.js`, which OpenNext produces.
+From `web/`:
+
+```bash
+npx opennextjs-cloudflare build     # runs next build, then adapts the output
+npx opennextjs-cloudflare deploy    # upload to Cloudflare Workers
+```
+
+`npm run build` alone is only the Next.js build; it is not the Worker. To run the built
+Worker locally under Wrangler before deploying:
+
+```bash
+npx opennextjs-cloudflare build
+npx opennextjs-cloudflare preview
+```
 
 ### First-deploy checks
 

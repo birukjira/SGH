@@ -53,14 +53,14 @@ request to the address configured at the top of the file.
 ## How the front end and the back end connect
 
 There is no separate API — the Next.js server *is* the back end. Server Components
-read D1 directly, and every write is a Server Action invoked by a plain `<form>`.
+read D1 directly, and every write goes through a Server Action.
 
 ```
 browser ──GET /doctors──► Next server ──getDb() → env.DB──► D1 (SQLite)
                               │                                │
                               └──── server-rendered HTML ◄──────┘
 
-browser ──POST (form)──► Server Action
+browser ──POST (form or action call)──► Server Action
                             ├─ requireStaff()        staff cookie → digest check
                             ├─ parse + validate      lib/content.ts, lib/*.ts
                             ├─ INSERT / UPDATE ────► D1
@@ -68,17 +68,24 @@ browser ──POST (form)──► Server Action
                             └─ redirect(?saved=1)
 ```
 
+The staff screens post a plain `<form>` at a server action, and the contact form uses
+`useActionState`. The appointment wizard is the one exception: it keeps its steps and
+field checks in the browser, then calls `submitAppointment` — a server action — with
+the collected values, and the server re-runs every rule in `lib/appointment-slots.ts`
+before writing.
+
 Consequences worth knowing:
 
 - **Nothing is exposed to the browser.** No `/api` routes, no database credentials,
   no client-side fetch layer. Public pages only read; staff writes are gated.
 - **Public pages filter on `is_active = 1`**, so hiding a doctor in `/inbox/doctors`
   removes them from `/doctors`, the booking form and the home page on the next load.
-- **Forms work without JavaScript.** Server-action forms are progressively enhanced:
-  the rendered markup carries a `$ACTION_ID` field that posts to the same page, so a
-  click that lands before hydration still saves.
+- **Staff forms work without JavaScript.** Their markup carries the action ID that
+  posts to the same page, so they save even when a click lands before hydration. The
+  contact form is a progressively enhanced server-action post too. The appointment
+  wizard does need JavaScript; the server checks the same rules either way.
 - **The database binding is resolved in one place** — `web/lib/d1.ts` — from
-  `wrangler.jsonc` in development and from the hosting environment when deployed.
+  `wrangler.jsonc` in development and from the Worker environment when deployed.
 
 Full detail: [`docs/architecture.md`](docs/architecture.md).
 
@@ -88,12 +95,12 @@ Full detail: [`docs/architecture.md`](docs/architecture.md).
 
 | Route | Renders |
 | --- | --- |
-| `/` | Home: hero, quick access, departments, care pathways, doctors, map |
+| `/` | Home: hero, quick access, departments, care pathways, doctors, patient stories, map |
 | `/about` | Story, mission, facility gallery, quality commitments |
-| `/services` | Service cards from D1, grouped by category |
+| `/services` | Service cards from D1, filterable by category |
 | `/doctors` | Consultant directory from D1, with specialty filters |
-| `/appointment` | Four-step appointment request, written to `appointments` |
-| `/visit` | What to bring, admissions, visiting hours, rights, FAQs |
+| `/appointment` | Three-step appointment request, written to `appointments` |
+| `/visit` | What to bring, admissions, visiting hours, rights, insurance, FAQs |
 | `/contact` | Contact details plus a message form written to `messages` |
 | `/privacy` | Website privacy notice |
 
@@ -169,6 +176,7 @@ npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM do
 │   ├── public/               generated assets (CSS, images, sprite)
 │   ├── wrangler.jsonc        D1 binding and Worker config
 │   └── .dev.vars.example     local secrets template
+├── .github/workflows/        CI: install `web/` and typecheck on every push
 ├── docs/                     architecture, staff guide, deployment, static site
 └── README.md
 ```
@@ -181,7 +189,7 @@ npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM do
 | --- | --- | --- |
 | Rebuild the static site | `node src/build.mjs` | repository root |
 | Recompile CSS/images for the app | `npm run assets` | `web/` |
-| Typecheck the app | `npm run typecheck` | `web/` |
+| Typecheck the app (also runs in CI on every push) | `npm run typecheck` | `web/` |
 | Production build | `npm run build` | `web/` |
 | Reset the local database | `npm run db:local` | `web/` |
 
@@ -189,7 +197,8 @@ Guidelines:
 
 - **Edit CSS in `src/css/`**, then run `npm run assets` in `web/`. Files under
   `web/public/assets/css/` are generated and git-ignored.
-- **Typecheck before handing over:** `npm run typecheck` must pass. It is the only
+- **Typecheck before handing over:** `npm run typecheck` must pass.
+  `.github/workflows/ci.yml` runs the same check on every push; there is no other
   automated check in the project.
 - **No invented clinical facts.** Clinic days, languages, qualifications, hours and
   insurance text must come from the hospital. Where they are unknown, the site says
@@ -241,7 +250,7 @@ privacy notice as a draft for review.
 
 ## Credits
 
-Photography from [Unsplash](https://unsplash.com/license), map data ©
-[OpenStreetMap contributors](https://www.openstreetmap.org/copyright), typeface
+Photography from [Unsplash](https://unsplash.com/license), map screenshot from
+[Google Maps](https://www.google.com/maps) (© Google), typeface
 [Montserrat](https://fonts.google.com/specimen/Montserrat) (SIL OFL 1.1), logo
 supplied by the hospital. Full list in [`docs/static-site.md`](docs/static-site.md).
