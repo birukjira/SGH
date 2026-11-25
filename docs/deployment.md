@@ -77,15 +77,16 @@ never commit a real password.
 ### Deploy
 
 `wrangler.jsonc` points the Worker at `.open-next/worker.js`, which OpenNext produces.
-From `web/`:
+`open-next.config.ts` holds the adapter settings. From `web/`:
 
 ```bash
-npx opennextjs-cloudflare build     # runs next build, then adapts the output
+npx opennextjs-cloudflare build     # npm run build, then adapts the output
 npx opennextjs-cloudflare deploy    # upload to Cloudflare Workers
 ```
 
-`npm run build` alone is only the Next.js build; it is not the Worker. To run the built
-Worker locally under Wrangler before deploying:
+The OpenNext build runs `npm run build` first, so the CSS and asset step happens too.
+`npm run build` alone is only the Next.js build; it is not the Worker. To run the
+built Worker locally under Wrangler before deploying:
 
 ```bash
 npx opennextjs-cloudflare build
