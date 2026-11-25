@@ -90,8 +90,11 @@ built Worker locally under Wrangler before deploying:
 
 ```bash
 npx opennextjs-cloudflare build
-npx opennextjs-cloudflare preview
+npx opennextjs-cloudflare preview    # http://localhost:8787
 ```
+
+The preview reads the same local D1 state as `next dev`, so run `npm run db:local`
+first; without the schema every database-backed page returns a 500.
 
 ### First-deploy checks
 
