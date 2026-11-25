@@ -66,7 +66,7 @@ export function SiteFooter() {
         <p>&copy; {new Date().getFullYear()} Summit General Hospital. All rights reserved.</p>
         <nav aria-label="Legal">
           <Link href="/privacy">Privacy</Link>
-          <Link href="/sitemap.xml">Sitemap</Link>
+          <a href="/sitemap.xml">Sitemap</a>
         </nav>
       </div>
       <div className="wrap footer__disclaimer">
