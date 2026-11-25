@@ -1,0 +1,289 @@
+/* ==========================================================================
+   Contact rail + newsletter popup
+   ========================================================================== */
+
+/* Floating contact rail -------------------------------------------------- */
+.contact-rail {
+  position: fixed;
+  z-index: 210;
+  right: clamp(12px, 2vw, 22px);
+  bottom: clamp(14px, 2.4vw, 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.contact-rail__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 16px 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--forest);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  box-shadow: 0 16px 32px -20px rgba(4, 26, 36, 0.55);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease),
+    background 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+
+.contact-rail__btn .icon { width: 19px; height: 19px; }
+
+.contact-rail__btn:hover {
+  transform: translateX(-3px);
+  box-shadow: 0 22px 38px -18px rgba(4, 26, 36, 0.6);
+}
+
+.contact-rail__btn--whatsapp {
+  background: #1faa59;
+  border-color: #1faa59;
+  color: #fff;
+}
+
+.contact-rail__btn--whatsapp:hover { background: #188f4a; border-color: #188f4a; }
+
+.contact-rail__btn--telegram {
+  background: #229ed9;
+  border-color: #229ed9;
+  color: #fff;
+}
+
+.contact-rail__btn--telegram:hover { background: #1b88ba; border-color: #1b88ba; }
+
+.contact-rail__btn--call {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--paper);
+}
+
+.contact-rail__btn--call:hover { background: var(--forest-3); border-color: var(--forest-3); }
+
+.contact-rail__btn--news { background: #fff; }
+
+.contact-rail__btn--news .icon { color: var(--teal); }
+.contact-rail__btn--news:hover { background: var(--mint); border-color: rgba(8, 79, 108, 0.3); }
+
+.contact-rail__btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .contact-rail { right: 10px; bottom: 14px; gap: 8px; }
+
+  .contact-rail__btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .contact-rail__label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-rail__btn:hover { transform: none; }
+}
+
+/* Staff screens (app/inbox). The rail is fixed to the right edge and the staff
+   column is centred, so the two collide as soon as each side gutter is narrower
+   than the rail's footprint (widest button 125px + 22px offset at ≥641px).
+   Rather than pick a round width, derive the threshold from that geometry:
+   widest staff column + 2 × (footprint + 48px clearance) = 1290px. Above it the
+   rail has at least 48px of clear space beside the column; below it the rail is
+   hidden so it can never cover the queue controls or card buttons. Scoped with
+   :has so the public pages keep the rail at every width. */
+@media (max-width: calc(900px + 2 * (125px + 22px + 48px))) {
+  body:has(.staff-shell) .contact-rail { display: none; }
+}
+
+
+/* Newsletter popup ------------------------------------------------------- */
+.subscribe {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 32px);
+}
+
+.subscribe__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 26, 36, 0.62);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+
+.subscribe.is-open .subscribe__backdrop { opacity: 1; }
+
+.subscribe__card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: clamp(26px, 4vw, 40px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: 0 50px 90px -40px rgba(4, 26, 36, 0.7);
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+
+.subscribe__card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+}
+
+.subscribe.is-open .subscribe__card {
+  opacity: 1;
+  transform: none;
+}
+
+.subscribe__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink-soft);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.subscribe__close:hover {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--paper);
+}
+
+.subscribe__close .icon { width: 16px; height: 16px; }
+
+.subscribe__card h2 {
+  margin-top: 14px;
+  max-width: 18ch;
+  font-size: clamp(1.75rem, 3.6vw, 2.35rem);
+}
+
+.subscribe__intro {
+  margin-top: 12px;
+  max-width: 46ch;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.subscribe__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.subscribe__consent {
+  align-items: flex-start;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.subscribe__consent a {
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.subscribe__status {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--forest);
+}
+
+.subscribe__status:empty { display: none; }
+.subscribe__status.is-error { color: var(--emergency); }
+
+.subscribe__skip {
+  justify-self: center;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.subscribe__skip:hover { color: var(--ink); }
+
+.subscribe__success {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  justify-items: start;
+}
+
+.subscribe__success-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--forest);
+}
+
+.subscribe__success-icon .icon { width: 22px; height: 22px; }
+
+.subscribe__success h3 { font-size: 1.3rem; }
+.subscribe__success p { font-size: 0.85rem; line-height: 1.6; color: var(--ink-soft); }
+.subscribe__success .btn { margin-top: 4px; }
+
+.subscribe__social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+
+.subscribe__social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 750;
+  color: var(--forest);
+  transition: color 0.2s var(--ease);
+}
+
+.subscribe__social a:hover { color: var(--teal); }
+.subscribe__social .icon { width: 15px; height: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .subscribe__backdrop,
+  .subscribe__card { transition-duration: 0.01ms; }
+}

@@ -1,0 +1,187 @@
+<!--
+title: Contact Summit General Hospital | Lemi Kura, Addis Ababa
+description: Contact Summit General Hospital at Summit 72, Lemi Kura, Addis Ababa. Call +251 111 132 702, email info@summitgh.com.et or send a message to our team.
+nav: contact
+body: page-contact
+-->
+
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span>Contact</span>
+    </nav>
+    <div class="page-hero__grid">
+      <div>
+        <p class="eyebrow">Contact us</p>
+        <h1 style="margin-top:16px">We're here to help.</h1>
+        <p class="page-hero__lede">
+          Call us, write to us, or come to the front desk at Summit 72. For appointments,
+          directions, insurance or medical records, our team will point you to the right person.
+        </p>
+      </div>
+      <aside class="page-hero__aside">
+        <p class="eyebrow">Emergency · 24/7</p>
+        <p>For chest pain, difficulty breathing, severe bleeding or a serious accident, call ahead or come directly to our emergency entrance.</p>
+        <a href="tel:+251111132702">
+          +251 111 132 702
+          <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="contact-cards">
+      <div class="contact-card contact-card--dark">
+        <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+        <h3>Call us</h3>
+        <p>Front desk: Monday–Saturday, 8:00 AM – 6:00 PM.<br>Emergency line: 24 hours.</p>
+        <a href="tel:+251111132702">+251 111 132 702</a>
+      </div>
+      <div class="contact-card">
+        <svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>
+        <h3>Visit us</h3>
+        <p>Summit 72, Lemi Kura<br>Addis Ababa, Ethiopia</p>
+        <a href="https://www.google.com/maps/search/?api=1&amp;query=Summit+General+Hospital%2C+Addis+Ababa%2C+Ethiopia" target="_blank" rel="noopener">Open in Google Maps</a>
+      </div>
+      <div class="contact-card">
+        <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
+        <h3>Email us</h3>
+        <p>General enquiries, appointments, insurance and medical records.</p>
+        <a href="mailto:info@summitgh.com.et">info@summitgh.com.et</a>
+      </div>
+    </div>
+
+    <div class="contact-map">
+      <img class="contact-map__img" src="assets/img/map-summit.jpg" alt="Map view of Summit General Hospital on Summit 72 Street, Lemi Kura, Addis Ababa, with the hospital marked." width="1200" height="750" loading="lazy" decoding="async">
+      <a class="map-card__open" href="https://www.google.com/maps/search/?api=1&amp;query=Summit+General+Hospital%2C+Addis+Ababa%2C+Ethiopia" target="_blank" rel="noopener">
+        Open in Google Maps
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
+      </a>
+      <div class="contact-map__label">
+        <svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>
+        <span>
+          <strong>Summit General Hospital</strong>
+          <span>Summit 72, Lemi Kura, Addis Ababa</span>
+        </span>
+      </div>
+      <a class="map-card__attrib" href="https://www.google.com/maps/search/?api=1&amp;query=Summit+General+Hospital%2C+Addis+Ababa%2C+Ethiopia" target="_blank" rel="noopener">Map data © Google</a>
+    </div>
+
+    <div class="contact-main">
+      <div class="contact-form-card">
+        <h2>Send a message.</h2>
+        <p>Please do not use this form for urgent medical concerns. Call us or come directly to the emergency department.</p>
+
+        <form id="contactForm" action="send.php" method="post" novalidate>
+          <input type="hidden" name="form_type" value="contact">
+          <div class="hp-field" aria-hidden="true">
+            <label for="company">Leave this field empty</label>
+            <input type="text" id="company" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="contactName">Your name</label>
+              <input class="input" type="text" id="contactName" name="contactName" autocomplete="name" required>
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="contactEmail">Email</label>
+              <input class="input" type="email" id="contactEmail" name="contactEmail" autocomplete="email" required>
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="contactPhone">Phone <span class="opt">(optional)</span></label>
+              <input class="input" type="tel" id="contactPhone" name="contactPhone" autocomplete="tel">
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="contactSubject">What is this about?</label>
+              <select class="select" id="contactSubject" name="contactSubject">
+                <option value="General enquiry">General enquiry</option>
+                <option value="Appointments">Appointments</option>
+                <option value="Insurance and billing">Insurance and billing</option>
+                <option value="Medical records">Medical records</option>
+                <option value="Feedback">Feedback or complaint</option>
+                <option value="Careers">Careers</option>
+                <option value="Media">Media &amp; partnerships</option>
+              </select>
+              <span class="field__error"></span>
+            </div>
+            <div class="field field--full">
+              <label for="contactMessage">Message</label>
+              <textarea class="textarea" id="contactMessage" name="contactMessage" rows="6" required placeholder="How can we help? Please avoid sharing sensitive medical details."></textarea>
+              <span class="field__error"></span>
+            </div>
+            <div class="field field--full">
+              <label class="check" for="contactConsent">
+                <input type="checkbox" id="contactConsent" name="contactConsent" value="yes" required>
+                <span>I agree that Summit General Hospital may use these details to reply to my message. Read our <a href="privacy.html">privacy notice</a>.</span>
+              </label>
+              <span class="field__error"></span>
+            </div>
+          </div>
+
+          <div style="margin-top:20px">
+            <button class="btn btn--primary btn--block" type="submit">
+              Send message
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+            </button>
+          </div>
+          <p class="small-note" style="margin-top:12px">We reply during office hours. For an urgent medical concern, call <a href="tel:+251111132702" style="font-weight:700;color:var(--ink)">+251 111 132 702</a>.</p>
+          <div class="contact-form-status" id="contactStatus" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div class="contact-info">
+        <div class="contact-info__block">
+          <h3>Front desk</h3>
+          <p>Our team can help with appointments, directions, billing questions and finding the right department.</p>
+          <div class="contact-info__rows">
+            <div><svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg> <a href="tel:+251111132702">+251 111 132 702</a></div>
+            <div><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg> <a href="mailto:info@summitgh.com.et">info@summitgh.com.et</a></div>
+            <div><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg> Mon–Sat, 8:00 AM – 6:00 PM</div>
+          </div>
+        </div>
+
+        <div class="contact-info__block">
+          <h3>Medical records</h3>
+          <p>To request a copy of your records or results, contact us with your full name, date of birth and the approximate date of your visit. We may ask for identification before releasing records.</p>
+          <div class="contact-info__rows">
+            <div><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg> <a href="mailto:info@summitgh.com.et?subject=Medical%20records%20request">info@summitgh.com.et</a></div>
+          </div>
+        </div>
+
+        <div class="contact-info__block">
+          <h3>Feedback and complaints</h3>
+          <p>Tell us what worked and what didn't. Compliments and complaints are reviewed by our leadership team, and raising a concern will never affect your care.</p>
+          <div class="contact-info__rows">
+            <div><svg class="icon" aria-hidden="true"><use href="#i-quote"></use></svg> Choose “Feedback or complaint” in the form</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap cta-band__inner">
+    <div>
+      <p class="eyebrow">In an emergency</p>
+      <h2>Don't wait. <em>Call us.</em></h2>
+      <p>Our emergency team is available 24 hours a day, every day. Call ahead so we can prepare for your arrival.</p>
+    </div>
+    <div class="cta-band__actions">
+      <a class="btn btn--light" href="tel:+251111132702">
+        Call +251 111 132 702
+        <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+      </a>
+      <a class="btn btn--ghost-light" href="appointment.html">Book a non-urgent visit</a>
+    </div>
+  </div>
+</section>

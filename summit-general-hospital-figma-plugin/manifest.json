@@ -1,0 +1,16 @@
+{
+  "name": "Summit General Hospital — Design Builder",
+  "id": "1520846937815423986",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ],
+    "reasoning": "All photography and artwork are embedded in the plugin; it makes no network requests."
+  }
+}

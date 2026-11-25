@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /send.php
+Disallow: /thank-you.html
+
+Sitemap: https://summitgeneralhospital.com/sitemap.xml

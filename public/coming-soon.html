@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Summit General Hospital — new website opening soon</title>
+<meta name="description" content="Our new website is almost ready. Summit General Hospital in Summit 72, Lemi Kura, Addis Ababa is open now — call, message or visit us in person.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#084f6c">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<style>
+  @font-face {
+    font-family: 'Montserrat';
+    src: url('assets/fonts/montserrat-var.woff2') format('woff2');
+    font-weight: 300 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --paper: #f5fafb;
+    --mint: #e2f4f6;
+    --ink: #0a1f2a;
+    --ink-soft: #4e626b;
+    --forest: #084f6c;
+    --forest-3: #0b6f91;
+    --teal: #0091a4;
+    --teal-light: #4dc4c1;
+    --line: rgba(8, 79, 108, 0.15);
+    --radius-lg: 14px;
+    --ease: cubic-bezier(0.22, 0.68, 0.22, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    font-weight: 350;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; text-decoration: none; }
+
+  .shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+    min-height: 100svh;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    padding: clamp(26px, 3.4vw, 44px) clamp(28px, 5vw, 76px);
+    max-width: 660px;
+  }
+
+  .brand { width: clamp(150px, 16vw, 186px); height: auto; }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 7px 14px 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--mint);
+    font-size: 0.62rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--forest);
+  }
+
+  .status::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    box-shadow: 0 0 0 4px rgba(77, 196, 193, 0.22);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4.4vw, 3.15rem);
+    font-weight: 750;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    max-width: 16ch;
+  }
+
+  .lede {
+    max-width: 46ch;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .facts {
+    display: grid;
+    gap: 12px;
+    margin-top: 2px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .fact svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    margin-top: 2px;
+    stroke: var(--teal);
+    stroke-width: 1.7;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fact strong { display: block; font-weight: 700; }
+  .fact span { color: var(--ink-soft); }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 46px;
+    padding: 0 20px;
+    border: 1px solid var(--forest);
+    border-radius: 999px;
+    background: var(--forest);
+    color: #f5fafb;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+
+  .btn:hover { background: var(--forest-3); border-color: var(--forest-3); }
+
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--forest);
+  }
+
+  .btn--ghost:hover { background: var(--mint); border-color: rgba(8, 79, 108, 0.3); }
+
+  .btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .note {
+    max-width: 44ch;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .foot {
+    margin-top: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+  }
+
+  .photo { position: relative; background: var(--mint); }
+
+  .photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 58% 50%;
+  }
+
+  .photo figcaption {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: rgba(245, 250, 251, 0.92);
+    font-size: 0.62rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    color: var(--forest);
+  }
+
+  @media (max-width: 900px) {
+    .shell {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .photo { order: -1; height: clamp(210px, 36vh, 320px); }
+
+    .panel { max-width: none; padding: clamp(26px, 6vw, 44px); gap: 22px; }
+
+    h1 { font-size: clamp(1.9rem, 7.4vw, 2.6rem); }
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <img class="brand" src="assets/img/logo-dark.svg" alt="Summit General Hospital" width="186" height="73">
+      <p class="status">Website under construction</p>
+      <h1>Our new website is almost ready.</h1>
+      <p class="lede">
+        We are putting the finishing touches on summitgh.com.et. The hospital itself is open and
+        caring for patients right now, with our ambulance service running around the clock — call us,
+        send a message, or visit us in person.
+      </p>
+
+      <div class="facts">
+        <div class="fact">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+          <div><strong>Summit 72, Lemi Kura</strong><span>Addis Ababa, Ethiopia</span></div>
+        </div>
+        <div class="fact">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3.2l1.6 4-2 1.4a12 12 0 0 0 6.8 6.8l1.4-2 4 1.6V19a1.6 1.6 0 0 1-1.8 1.6C10.3 19.8 4.2 13.7 3.4 5.8A1.6 1.6 0 0 1 5 4Z"/></svg>
+          <div><strong><a href="tel:+251111132702">+251 111 132 702</a></strong><span>Emergency line open 24/7</span></div>
+        </div>
+        <div class="fact">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16V8h11v8M14 11h4l3 3v2h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M8 10v4M6 12h4"/></svg>
+          <div><strong>Ambulance service</strong><span>24/7 dispatch on the emergency line</span></div>
+        </div>
+        <div class="fact">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8"/></svg>
+          <div><strong>Emergency 24/7</strong><span>Outpatient clinics Mon–Sat, 8:00–18:00</span></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="tel:+251111132702">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3.2l1.6 4-2 1.4a12 12 0 0 0 6.8 6.8l1.4-2 4 1.6V19a1.6 1.6 0 0 1-1.8 1.6C10.3 19.8 4.2 13.7 3.4 5.8A1.6 1.6 0 0 1 5 4Z"/></svg>
+          Call us
+        </a>
+        <a class="btn btn--ghost" href="https://api.whatsapp.com/message/N7MNBTLDPE3FH1?autoload=1&app_absent=0" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn btn--ghost" href="https://t.me/+251950505015" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn btn--ghost" href="https://www.google.com/maps/search/?api=1&amp;query=Summit+General+Hospital%2C+Addis+Ababa%2C+Ethiopia" target="_blank" rel="noopener">Get directions</a>
+      </div>
+
+      <p class="note">
+        Online appointment booking arrives with the new site. Until then, our front desk will
+        arrange your visit by phone or message.
+      </p>
+
+      <p class="foot">© <span id="year">2026</span> Summit General Hospital · Summit 72, Lemi Kura, Addis Ababa</p>
+    </section>
+
+    <figure class="photo">
+      <img src="assets/img/lobby.jpg" alt="The reception desk and waiting area at Summit General Hospital in Addis Ababa." width="1365" height="768">
+      <figcaption>Reception · Summit 72</figcaption>
+    </figure>
+  </main>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <link rel="canonical" href="{{canonical}}">
+  <meta name="theme-color" content="#0C3B33">
+  <meta name="robots" content="{{robots}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Summit General Hospital">
+  <meta property="og:locale" content="en_ET">
+  <meta property="og:title" content="{{ogTitle}}">
+  <meta property="og:description" content="{{ogDescription}}">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:image" content="{{ogImage}}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Summit General Hospital — good health has a home in Addis.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ogTitle}}">
+  <meta name="twitter:description" content="{{ogDescription}}">
+  <meta name="twitter:image" content="{{ogImage}}">
+  <meta name="twitter:image:alt" content="Summit General Hospital — good health has a home in Addis.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/styles.css?v={{cssVersion}}">
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Hospital",
+    "name": "Summit General Hospital",
+    "url": "https://summitgeneralhospital.com/",
+    "logo": "https://summitgeneralhospital.com/assets/img/logo-dark.svg",
+    "image": "https://summitgeneralhospital.com/assets/img/og.jpg",
+    "description": "A general hospital in Summit 72, Lemi Kura, Addis Ababa, offering 24/7 emergency care, consultant-led outpatient clinics, surgery, maternity, diagnostics and pharmacy services.",
+    "telephone": "+251-111-132-702",
+    "email": "info@summitgh.com.et",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Summit 72",
+      "addressLocality": "Lemi Kura, Addis Ababa",
+      "addressCountry": "ET"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+      "opens": "00:00",
+      "closes": "23:59"
+    },
+    "medicalSpecialty": ["Emergency","InternalMedicine","Pediatrics","Obstetric","Gynecologic","Surgical","Orthopedic","Cardiovascular","Radiology","Dermatology","Otolaryngologic","Ophthalmologic","Urologic","Dentistry"]
+  }
+  </script>
+</head>
+<body class="{{bodyClass}}">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  {{header}}
+  <main id="main">
+{{content}}
+  </main>
+  {{footer}}
+
+  <aside class="contact-rail" aria-label="Contact Summit General Hospital">
+    <a class="contact-rail__btn contact-rail__btn--whatsapp" href="https://wa.me/251111132702?text=Hello%20Summit%20General%20Hospital%2C%20I%20would%20like%20to%20ask%20about" target="_blank" rel="noopener" aria-label="Chat with Summit General Hospital on WhatsApp">
+      <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+      <span class="contact-rail__label">WhatsApp</span>
+    </a>
+    <a class="contact-rail__btn contact-rail__btn--telegram" href="https://t.me/+251950505015" target="_blank" rel="noopener" aria-label="Message Summit General Hospital on Telegram">
+      <svg class="icon" aria-hidden="true"><use href="#i-telegram"></use></svg>
+      <span class="contact-rail__label">Telegram</span>
+    </a>
+    <a class="contact-rail__btn contact-rail__btn--call" href="tel:+251111132702" aria-label="Call Summit General Hospital on +251 111 132 702">
+      <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+      <span class="contact-rail__label">Call 24/7</span>
+    </a>
+    <button class="contact-rail__btn contact-rail__btn--news" type="button" data-subscribe-open aria-haspopup="dialog" aria-controls="subscribe" aria-label="Subscribe for hospital news and updates">
+      <svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg>
+      <span class="contact-rail__label">News &amp; updates</span>
+    </button>
+  </aside>
+
+  <div class="subscribe" id="subscribe" hidden aria-hidden="true">
+    <div class="subscribe__backdrop" data-subscribe-close></div>
+    <div class="subscribe__card" role="dialog" aria-modal="true" aria-labelledby="subscribeTitle" aria-describedby="subscribeIntro">
+      <button class="subscribe__close" type="button" data-subscribe-close aria-label="Close newsletter sign-up">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+
+      <p class="eyebrow">News &amp; updates</p>
+      <h2 id="subscribeTitle">Health news, <em>straight to your inbox.</em></h2>
+      <p class="subscribe__intro" id="subscribeIntro">Seasonal health advice, new clinics and service updates from Summit General Hospital. A short email now and then — no spam.</p>
+
+      <form class="subscribe__form" id="subscribeForm" action="send.php" method="post" novalidate>
+        <input type="hidden" name="form_type" value="newsletter">
+        <div class="hp-field" aria-hidden="true">
+          <label for="subscribeWebsite">Leave this field empty</label>
+          <input type="text" id="subscribeWebsite" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="subscribeEmail">Email address</label>
+          <input class="input" type="email" id="subscribeEmail" name="email" autocomplete="email" placeholder="you@example.com" required>
+          <span class="field__error"></span>
+        </div>
+
+        <div class="field">
+          <label class="check subscribe__consent" for="subscribeConsent">
+            <input type="checkbox" id="subscribeConsent" name="consent" value="yes" required>
+            <span>I agree to receive occasional news and health updates from Summit General Hospital. Read our <a href="privacy.html">privacy notice</a>.</span>
+          </label>
+          <span class="field__error"></span>
+        </div>
+
+        <button class="btn btn--primary btn--block" type="submit">
+          Subscribe
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+        </button>
+        <p class="subscribe__status" id="subscribeStatus" role="status" aria-live="polite"></p>
+        <button class="subscribe__skip" type="button" data-subscribe-close>Not now</button>
+      </form>
+
+      <div class="subscribe__success" id="subscribeSuccess" hidden>
+        <span class="subscribe__success-icon" aria-hidden="true">
+          <svg class="icon"><use href="#i-check"></use></svg>
+        </span>
+        <h3>You're on the list.</h3>
+        <p>Thank you — we'll email you when there is hospital news worth sharing. You can unsubscribe at any time.</p>
+        <button class="btn btn--primary" type="button" data-subscribe-close>Close</button>
+      </div>
+
+      <div class="subscribe__social">
+        <span>Prefer to chat?</span>
+        <a href="https://wa.me/251111132702?text=Hello%20Summit%20General%20Hospital%2C%20I%20would%20like%20to%20ask%20about" target="_blank" rel="noopener">
+          <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+          WhatsApp
+        </a>
+        <a href="https://t.me/+251950505015" target="_blank" rel="noopener">
+          <svg class="icon" aria-hidden="true"><use href="#i-telegram"></use></svg>
+          Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {{icons}}
+  <script src="assets/js/main.js?v={{jsVersion}}" defer></script>
+</body>
+</html>

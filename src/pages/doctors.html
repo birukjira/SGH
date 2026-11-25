@@ -1,0 +1,180 @@
+<!--
+title: Our Doctors | Summit General Hospital, Lemi Kura
+description: Meet the consultant team at Summit General Hospital in Lemi Kura, Addis Ababa. Search by specialty, language or clinic day and request an appointment online.
+nav: doctors
+body: page-doctors
+-->
+
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span>Doctors</span>
+    </nav>
+    <div class="page-hero__grid">
+      <div>
+        <p class="eyebrow">Our consultants</p>
+        <h1 style="margin-top:16px">Find the right specialist.</h1>
+        <p class="page-hero__lede">
+          Search by name or specialty, or filter by the kind of care you need. Every
+          consultation is with a qualified consultant — and a team that will explain the
+          next step clearly.
+        </p>
+      </div>
+      <aside class="page-hero__aside">
+        <p class="eyebrow">Need help choosing?</p>
+        <p>Not sure which specialty fits your concern? Call our front desk and we'll guide you to the right consultant.</p>
+        <a href="tel:+251111132702">
+          +251 111 132 702
+          <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="doctors-note">
+      <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+      <span>Consultations are by appointment. Clinic days below are a guide — call us to confirm availability, or <a href="appointment.html">request an appointment online</a> and we will call you back.</span>
+    </div>
+
+    <div class="doctor-toolbar">
+      <div class="chips" role="group" aria-label="Filter doctors by specialty">
+        <button class="chip" type="button" data-doctor-filter="all" aria-pressed="true">All</button>
+        <button class="chip" type="button" data-doctor-filter="internal-medicine" aria-pressed="false">Internal medicine</button>
+        <button class="chip" type="button" data-doctor-filter="pediatrics" aria-pressed="false">Pediatrics</button>
+        <button class="chip" type="button" data-doctor-filter="womens-health" aria-pressed="false">Women's health</button>
+        <button class="chip" type="button" data-doctor-filter="surgery" aria-pressed="false">Surgery &amp; ortho</button>
+      </div>
+      <div class="search-field">
+        <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
+        <label class="sr-only" for="doctorSearch">Search doctors by name or specialty</label>
+        <input id="doctorSearch" name="doctorSearch" type="search" placeholder="Search name or specialty" autocomplete="off">
+      </div>
+    </div>
+
+    <p class="filter-count" aria-live="polite" style="margin-bottom:20px">Showing <strong id="doctorCount">4</strong> consultants</p>
+
+    <div class="doctor-grid" id="doctorGrid">
+      <article class="doctor-card" data-department="internal-medicine" data-name="Dr. Million Seid Muzeyen" data-specialty="Internal Medicine" data-focus="Adult internal medicine and chronic disease care">
+        <div class="doctor-card__top">
+          <span class="avatar avatar--photo" aria-hidden="true">
+            <img src="assets/img/doctors/dr-million-seid-muzeyen.jpg" alt="" width="112" height="112" loading="lazy" decoding="async">
+          </span>
+          <div>
+            <h3>Dr. Million Seid Muzeyen</h3>
+            <p class="doctor-card__role">Internist &amp; CEO</p>
+          </div>
+        </div>
+        <p class="doctor-card__focus">Adult internal medicine and chronic disease care.</p>
+        <div class="doctor-card__meta">
+          <div><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg> Clinic days — call to confirm</div>
+        </div>
+        <div class="doctor-card__actions">
+          <a class="link-arrow" href="appointment.html?department=Internal%20Medicine&amp;doctor=Dr.%20Million%20Seid%20Muzeyen">Book a visit <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+          <span class="doctor-card__langs">Internal medicine</span>
+        </div>
+      </article>
+
+      <article class="doctor-card" data-department="pediatrics" data-name="Dr. Yasin Ahmed Yesuf" data-specialty="Pediatrics, Child Health" data-focus="Child health, newborn follow-up and childhood illness">
+        <div class="doctor-card__top">
+          <span class="avatar avatar--photo" aria-hidden="true">
+            <img src="assets/img/doctors/dr-yasin-ahmed-yesuf.jpg" alt="" width="112" height="112" loading="lazy" decoding="async">
+          </span>
+          <div>
+            <h3>Dr. Yasin Ahmed Yesuf</h3>
+            <p class="doctor-card__role">Consultant Pediatrician</p>
+          </div>
+        </div>
+        <p class="doctor-card__focus">Child health, newborn follow-up and childhood illness.</p>
+        <div class="doctor-card__meta">
+          <div><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg> Clinic days — call to confirm</div>
+        </div>
+        <div class="doctor-card__actions">
+          <a class="link-arrow" href="appointment.html?department=Pediatrics%20%26%20Child%20Health&amp;doctor=Dr.%20Yasin%20Ahmed%20Yesuf">Book a visit <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+          <span class="doctor-card__langs">Pediatrics</span>
+        </div>
+      </article>
+
+            <article class="doctor-card" data-department="surgery" data-name="Dr. Gosa Abebe Shifera" data-specialty="General Surgery" data-focus="General and emergency surgery">
+        <div class="doctor-card__top">
+          <span class="avatar avatar--photo" aria-hidden="true">
+            <img src="assets/img/doctors/dr-gosa-abebe-shifera.jpg" alt="" width="112" height="112" loading="lazy" decoding="async">
+          </span>
+          <div>
+            <h3>Dr. Gosa Abebe Shifera</h3>
+            <p class="doctor-card__role">Consultant General Surgeon</p>
+          </div>
+        </div>
+        <p class="doctor-card__focus">General and emergency surgery.</p>
+        <div class="doctor-card__meta">
+          <div><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg> Clinic days — call to confirm</div>
+        </div>
+        <div class="doctor-card__actions">
+          <a class="link-arrow" href="appointment.html?department=General%20%26%20Laparoscopic%20Surgery&amp;doctor=Dr.%20Gosa%20Abebe%20Shifera">Book a visit <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+          <span class="doctor-card__langs">Surgery</span>
+        </div>
+      </article>
+
+            <article class="doctor-card" data-department="womens-health" data-name="Dr. Biniyam Denekew Asrat" data-specialty="Obstetrics and Gynecology" data-focus="Obstetrics, gynaecological care and women's health">
+        <div class="doctor-card__top">
+          <span class="avatar avatar--photo" aria-hidden="true">
+            <img src="assets/img/doctors/dr-biniyam-denekew-asrat.jpg" alt="" width="112" height="112" loading="lazy" decoding="async">
+          </span>
+          <div>
+            <h3>Dr. Biniyam Denekew Asrat</h3>
+            <p class="doctor-card__role">Consultant Obstetrician and Gynecologist</p>
+          </div>
+        </div>
+        <p class="doctor-card__focus">Obstetrics, gynaecological care and women's health.</p>
+        <div class="doctor-card__meta">
+          <div><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg> Clinic days — call to confirm</div>
+        </div>
+        <div class="doctor-card__actions">
+          <a class="link-arrow" href="appointment.html?department=Obstetrics%20%26%20Gynecology&amp;doctor=Dr.%20Biniyam%20Denekew%20Asrat">Book a visit <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+          <span class="doctor-card__langs">Women's health</span>
+        </div>
+      </article>
+
+                                              </div>
+
+    <div class="empty-state" id="doctorEmpty">
+      <strong>No consultants match your search.</strong>
+      Try another specialty or call +251 111 132 702 — we'll help you find the right person.
+    </div>
+
+    <div class="recruit-band">
+      <div>
+        <h3>Are you a consultant considering Summit?</h3>
+        <p>We are always interested in meeting doctors and nurses who share our approach to care.</p>
+      </div>
+      <a class="btn btn--light" href="contact.html">
+        Write to our team
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap cta-band__inner">
+    <div>
+      <p class="eyebrow">Ready to book?</p>
+      <h2>Your <em>specialist</em> is closer than you think.</h2>
+      <p>Choose a department and a preferred time. Our team will call you to confirm the appointment.</p>
+    </div>
+    <div class="cta-band__actions">
+      <a class="btn btn--light" href="appointment.html">
+        Book an appointment
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+      </a>
+      <a class="btn btn--ghost-light" href="tel:+251111132702">
+        Call +251 111 132 702
+        <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+      </a>
+    </div>
+  </div>
+</section>

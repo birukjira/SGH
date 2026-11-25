@@ -1,0 +1,27 @@
+{
+  "name": "summit-general-hospital-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/build-assets.mjs && next dev -p 3100",
+    "build": "node scripts/build-assets.mjs && next build",
+    "start": "next start -p 3100",
+    "typecheck": "tsc --noEmit",
+    "assets": "node scripts/build-assets.mjs",
+    "db:local": "wrangler d1 execute DB --local --file=db/schema.sql && wrangler d1 execute DB --local --file=db/seed.sql",
+    "db:remote": "wrangler d1 execute DB --remote --file=db/schema.sql && wrangler d1 execute DB --remote --file=db/seed.sql"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "1.20.18",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "wrangler": "4.166.0"
+  }
+}

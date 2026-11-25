@@ -1,0 +1,37 @@
+# OS and editor noise
+.DS_Store
+*.log
+
+# Static site build output — regenerate with `node src/build.mjs`
+dist/
+summit-general-hospital-site/
+*.zip
+
+# One-off screenshots taken while checking pages
+preview-*.png
+screenshots/
+
+# Next.js app
+web/node_modules/
+web/.next/
+web/.open-next/
+web/.wrangler/
+web/next-env.d.ts
+web/*.tsbuildinfo
+
+# Assets generated from ../src and ../public by `npm run assets` (in web/)
+web/public/assets/css/
+web/public/assets/img/
+web/public/assets/fonts/
+web/public/sprite.svg
+web/public/favicon.ico
+web/public/robots.txt
+
+# Local secrets — production values live in the hosting environment
+web/.dev.vars
+web/.env
+web/.env.*
+
+# Local tooling state
+.freebuff/
+.cloud-attachments/

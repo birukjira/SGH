@@ -1,0 +1,347 @@
+<!--
+title: Book an Appointment | Summit General Hospital, Lemi Kura
+description: Request an appointment at Summit General Hospital in Lemi Kura, Addis Ababa. Choose a department, preferred date and time. Our team will call you to confirm.
+nav: appointment
+body: page-appointment
+-->
+
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span>Appointments</span>
+    </nav>
+    <div class="page-hero__grid">
+      <div>
+        <p class="eyebrow">Appointments</p>
+        <h1 style="margin-top:16px">Request an appointment.</h1>
+        <p class="page-hero__lede">
+          Tell us what you need and when suits you. Our team will call you to confirm the
+          time and answer any questions before your visit.
+        </p>
+      </div>
+      <aside class="page-hero__aside">
+        <p class="eyebrow">Prefer to talk?</p>
+        <p>Call our front desk — we can often find a time while you're on the phone.</p>
+        <a href="tel:+251111132702">
+          +251 111 132 702
+          <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap booking">
+    <div class="booking-card" id="bookingCard">
+      <div class="booking-card__head">
+        <div>
+          <h2>Book a visit</h2>
+          <p>Four short steps. No payment required online.</p>
+        </div>
+        <span class="booking-card__secure">
+          <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+          Your details are private
+        </span>
+      </div>
+
+      <div class="form-alert" id="bookingAlert" role="alert"></div>
+
+      <form id="bookingForm" action="send.php" method="post" novalidate>
+        <input type="hidden" name="form_type" value="appointment">
+        <div class="hp-field" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="stepper" id="bookingStepper" aria-label="Appointment request progress">
+          <div class="stepper__item is-active" data-step-indicator="1">
+            <span class="stepper__num">01</span>
+            <span class="stepper__label">Your visit</span>
+          </div>
+          <div class="stepper__item" data-step-indicator="2">
+            <span class="stepper__num">02</span>
+            <span class="stepper__label">Date &amp; time</span>
+          </div>
+          <div class="stepper__item" data-step-indicator="3">
+            <span class="stepper__num">03</span>
+            <span class="stepper__label">Your details</span>
+          </div>
+          <div class="stepper__item" data-step-indicator="4">
+            <span class="stepper__num">04</span>
+            <span class="stepper__label">Review</span>
+          </div>
+        </div>
+
+        <section class="form-step is-active" data-step="1" aria-labelledby="stepTitle1">
+          <h2 class="form-step__title" id="stepTitle1" tabindex="-1">What brings you in?</h2>
+          <p class="form-step__intro">Choose the department closest to your concern. If you're not sure, pick one and we'll redirect you if needed.</p>
+
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="department">Department</label>
+              <select class="select" id="department" name="department" required>
+                <option value="">Select a department</option>
+                <optgroup label="Emergency">
+                <option value="Emergency &amp; Critical Care">Emergency &amp; Critical Care</option>
+                </optgroup>
+                <optgroup label="Medical specialties">
+                <option value="Internal Medicine">Internal Medicine</option>
+                <option value="Family Medicine">Family Medicine &amp; Screening</option>
+                <option value="Pediatrics &amp; Child Health">Pediatrics &amp; Child Health</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="ENT">Ear, Nose &amp; Throat (ENT)</option>
+                <option value="Ophthalmology">Ophthalmology</option>
+                <option value="Urology">Urology</option>
+                <option value="Dental Care">Dental Care</option>
+                </optgroup>
+                <optgroup label="Surgery &amp; women's health">
+                <option value="Obstetrics &amp; Gynecology">Obstetrics &amp; Gynecology</option>
+                <option value="General &amp; Laparoscopic Surgery">General &amp; Laparoscopic Surgery</option>
+                <option value="Orthopedics &amp; Trauma">Orthopedics &amp; Trauma</option>
+                </optgroup>
+                <optgroup label="Diagnostics &amp; rehabilitation">
+                <option value="Radiology &amp; Imaging">Radiology &amp; Imaging</option>
+                <option value="Physiotherapy &amp; Rehabilitation">Physiotherapy &amp; Rehabilitation</option>
+                </optgroup>
+              </select>
+              <span class="field__error"></span>
+            </div>
+
+            <div class="field field--full">
+              <label for="doctor">Preferred consultant <span class="opt">(optional)</span></label>
+              <select class="select" id="doctor" name="doctor" disabled>
+                <option value="">Choose a department first</option>
+                <option value="Dr. Million Seid Muzeyen" data-department="Internal Medicine">Dr. Million Seid Muzeyen — Internal medicine</option>
+                <option value="Dr. Yasin Ahmed Yesuf" data-department="Pediatrics &amp; Child Health">Dr. Yasin Ahmed Yesuf — Pediatrics</option>
+                <option value="Dr. Biniyam Denekew Asrat" data-department="Obstetrics &amp; Gynecology">Dr. Biniyam Denekew Asrat — Obstetrics and gynecology</option>
+                <option value="Dr. Gosa Abebe Shifera" data-department="General &amp; Laparoscopic Surgery">Dr. Gosa Abebe Shifera — General surgery</option>
+              </select>
+              <span class="field__help">Leave blank if you're happy to see any available consultant.</span>
+            </div>
+          </div>
+
+          <fieldset class="field" style="margin-top:20px">
+            <legend>Visit type</legend>
+            <div class="choice-grid">
+              <label class="choice">
+                <input type="radio" name="visit_type" value="First consultation" checked>
+                <span class="choice__inner">
+                  <span class="choice__icon" aria-hidden="true"><svg class="icon"><use href="#i-calendar"></use></svg></span>
+                  <span class="choice__text">
+                    <strong>First consultation</strong>
+                    <span>A new concern or your first visit to this department.</span>
+                  </span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="visit_type" value="Follow-up visit">
+                <span class="choice__inner">
+                  <span class="choice__icon" aria-hidden="true"><svg class="icon"><use href="#i-activity"></use></svg></span>
+                  <span class="choice__text">
+                    <strong>Follow-up visit</strong>
+                    <span>A review of ongoing care, results or treatment.</span>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <a class="link-arrow" href="doctors.html">
+              Browse doctors
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+            </a>
+            <div class="form-actions__right">
+              <button class="btn btn--primary" type="button" data-next>
+                Continue
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-step" data-step="2" aria-labelledby="stepTitle2" hidden>
+          <h2 class="form-step__title" id="stepTitle2" tabindex="-1">When would you like to come?</h2>
+          <p class="form-step__intro">Choose a preferred date and time. We will call you to confirm the exact appointment.</p>
+
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="preferredDate">Preferred date</label>
+              <input class="input" type="date" id="preferredDate" name="preferredDate" required>
+              <span class="field__help">Requests can be made up to three months ahead.</span>
+              <span class="field__error"></span>
+            </div>
+          </div>
+
+          <fieldset class="field" style="margin-top:20px">
+            <legend>Preferred time</legend>
+            <div class="slot-grid">
+              <label class="slot"><input type="radio" name="preferred_time" value="8:30 AM" required><span>8:30 AM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="9:30 AM"><span>9:30 AM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="10:30 AM"><span>10:30 AM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="11:30 AM"><span>11:30 AM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="2:00 PM"><span>2:00 PM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="3:00 PM"><span>3:00 PM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="4:00 PM"><span>4:00 PM</span></label>
+              <label class="slot"><input type="radio" name="preferred_time" value="5:00 PM"><span>5:00 PM</span></label>
+            </div>
+            <span class="field__help" style="margin-top:8px">Clinic hours are Monday to Saturday, 8:00 AM – 6:00 PM. Emergency care is open 24/7.</span>
+            <span class="field__error"></span>
+          </fieldset>
+
+          <div class="form-actions">
+            <button class="btn--back" type="button" data-back>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              Back
+            </button>
+            <div class="form-actions__right">
+              <button class="btn btn--primary" type="button" data-next>
+                Continue
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-step" data-step="3" aria-labelledby="stepTitle3" hidden>
+          <h2 class="form-step__title" id="stepTitle3" tabindex="-1">Who should we call?</h2>
+          <p class="form-step__intro">We only need enough to reach you and prepare for your visit. Please don't include sensitive medical details.</p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="firstName">First name</label>
+              <input class="input" type="text" id="firstName" name="firstName" autocomplete="given-name" required>
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="lastName">Last name</label>
+              <input class="input" type="text" id="lastName" name="lastName" autocomplete="family-name" required>
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input class="input" type="tel" id="phone" name="phone" autocomplete="tel" placeholder="+251 9__ ___ ___" required>
+              <span class="field__help">We'll use this to confirm your appointment.</span>
+              <span class="field__error"></span>
+            </div>
+            <div class="field">
+              <label for="email">Email <span class="opt">(optional)</span></label>
+              <input class="input" type="email" id="email" name="email" autocomplete="email" placeholder="you@example.com">
+              <span class="field__error"></span>
+            </div>
+            <div class="field field--full">
+              <label for="reason">Reason for visit <span class="opt">(optional)</span></label>
+              <textarea class="textarea" id="reason" name="reason" rows="4" placeholder="A short note — for example, a check-up, a follow-up, or a specific concern."></textarea>
+              <span class="field__help">Please keep this brief. We'll discuss the details privately at your appointment.</span>
+              <span class="field__error"></span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn--back" type="button" data-back>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              Back
+            </button>
+            <div class="form-actions__right">
+              <button class="btn btn--primary" type="button" data-next>
+                Review request
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-step" data-step="4" aria-labelledby="stepTitle4" hidden>
+          <h2 class="form-step__title" id="stepTitle4" tabindex="-1">Review your request</h2>
+          <p class="form-step__intro">Check the details below. Sending this form requests an appointment — it is not a confirmed booking until our team calls you.</p>
+
+          <dl class="review" id="reviewSummary"></dl>
+
+          <div class="field" style="margin-top:20px">
+            <label class="check" for="bookingConsent">
+              <input type="checkbox" id="bookingConsent" name="consent" value="yes" required>
+              <span>I agree to be contacted by Summit General Hospital about this request, and I have read the <a href="privacy.html">privacy notice</a>.</span>
+            </label>
+            <span class="field__error"></span>
+          </div>
+
+          <div class="notice" style="margin-top:18px">
+            <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+            <span><strong>This is a request, not a confirmed appointment.</strong> Our team will call you during clinic hours to confirm the time. If you need urgent care, call <a href="tel:+251111132702">+251 111 132 702</a>.</span>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn--back" type="button" data-back>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              Back
+            </button>
+            <div class="form-actions__right">
+              <button class="btn btn--primary" type="submit" id="bookingSubmit">
+                Send request
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+      </form>
+
+      <div class="booking-success" id="bookingSuccess" aria-live="polite" hidden>
+        <div class="success-mark" aria-hidden="true">
+          <svg class="icon"><use href="#i-check"></use></svg>
+        </div>
+        <h2 tabindex="-1">Your request is with us.</h2>
+        <p>Thank you. Our team will call you on the number you provided to confirm your appointment. If you don't hear from us within one working day, please call <a href="tel:+251111132702">+251 111 132 702</a>.</p>
+        <p class="success-ref">Reference <strong id="successRef">SGH-PENDING</strong></p>
+        <dl class="success-summary" id="successSummary"></dl>
+        <p class="small-note" id="successPreviewNote" hidden style="margin-top:14px">
+          Preview mode: this request was not sent because the site is being viewed as a local file.
+          Upload the site to your server and configure send.php to receive appointment requests.
+        </p>
+        <div class="success-actions">
+          <a class="btn btn--primary" href="index.html">Back to home</a>
+          <button class="btn btn--outline" type="button" id="bookAnother">Book another visit</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="booking-aside" aria-label="Appointment information">
+      <div class="aside-card aside-card--emergency">
+        <svg class="icon" aria-hidden="true"><use href="#i-cross"></use></svg>
+        <h3>Is this an emergency?</h3>
+        <p>Don't use this form. Call our emergency line or come directly to the emergency entrance at Summit 72.</p>
+        <p style="margin-top:12px"><a href="tel:+251111132702">+251 111 132 702</a></p>
+      </div>
+
+      <div class="aside-card">
+        <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+        <h3>Prefer to call?</h3>
+        <p>Our front desk can book, reschedule or answer questions about your visit.</p>
+        <p><a href="tel:+251111132702">+251 111 132 702</a></p>
+        <p style="font-size:0.68rem;margin-top:4px">Mon–Sat, 8:00 AM – 6:00 PM<br>Emergency line open 24/7</p>
+      </div>
+
+      <div class="aside-card">
+        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+        <h3>What to bring</h3>
+        <ul class="aside-list">
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg> Your ID or passport</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg> Insurance card, if you have one</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg> Any referral letter or previous results</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg> A list of medicines you take</li>
+        </ul>
+      </div>
+
+      <div class="aside-card">
+        <svg class="icon" aria-hidden="true"><use href="#i-card"></use></svg>
+        <h3>Insurance and billing</h3>
+        <p>We work with major Ethiopian insurers and offer direct billing where your plan allows. Bring your card and we'll check before your consultation.</p>
+        <p style="margin-top:9px"><a href="visit.html#insurance">Read about insurance</a></p>
+      </div>
+    </aside>
+  </div>
+</section>
