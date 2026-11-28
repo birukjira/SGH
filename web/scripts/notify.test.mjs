@@ -13,6 +13,9 @@ const CONFIGURED = {
   NOTIFY_EMAIL_FROM: 'Summit General Hospital <alerts@example.com>',
 };
 
+// Pinned so a local `SITE_URL` (a test host) cannot change what is asserted here.
+process.env.SITE_URL = '';
+
 const calls = [];
 let onFetch;
 let nextFetch;

@@ -155,6 +155,11 @@ MONGODB_URI='mongodb+srv://…' INBOX_PASSWORD='…' npm start   # http://localh
 
 - `npm start` is `next start -p 3100`; put a reverse proxy (nginx, Caddy, the
   platform's router) in front of it for TLS on port 443.
+- Set `SITE_URL` when the app is not on its production address — for a test host
+  such as `https://test.summitgh.com.et`. Canonical and sitemap URLs and the inbox
+  link in alert emails are built from it, so without it a test deployment points
+  staff back at production. It is read at startup, and also at build time for pages
+  Next prerenders.
 - Set `NODE_ENV=production` (platforms do this already) so the staff cookie is marked
   `Secure`.
 - Keep one app process behind the proxy, or make sure your platform does not scale to
@@ -170,6 +175,160 @@ MONGODB_URI='mongodb+srv://…' INBOX_PASSWORD='…' npm start   # http://localh
 - A contact message posted from `/contact` appears under `/inbox`.
 - An appointment posted from `/appointment` appears under `/inbox/appointments`.
 - Hiding a doctor removes them from `/doctors` immediately, and Show restores them.
+
+## Testing on a subdomain (`test.summitgh.com.et`)
+
+The test host runs the same build as production; only the address and the environment
+differ. It exists to try a change in front of a real browser without touching the main
+site.
+
+### DNS comes first
+
+`test.summitgh.com.et` currently resolves to `172.104.247.216`, a Traefik proxy with no
+route for that name: plain HTTP answers `404 page not found` and HTTPS serves
+`CN=TRAEFIK DEFAULT CERT`. So:
+
+1. Replace that record with an A record pointing at the server that runs the app (the
+   cPanel server that serves `summitgh.com.et` is `91.204.209.11`).
+2. Wait until `dig +short test.summitgh.com.et` prints the new address. AutoSSL checks
+   over HTTP against that address, so requesting the certificate earlier fails.
+3. Issue the certificate (cPanel → **SSL/TLS Status** → Run AutoSSL).
+
+### The app on a cPanel Node app
+
+This needs **Software → Setup Node.js App** (CloudLinux's Node.js Selector, which runs
+app through Passenger). A LiteSpeed-only account can serve `dist/` but cannot run this
+app; that case needs a VPS instead.
+
+- Application root: `~/nodeapps/sgh-test`, outside `public_html`
+- Application URL: `test.summitgh.com.et`
+- Application startup file: `server.cjs`
+- Node 20 or newer, application mode `production`
+- Environment variables: `MONGODB_URI`, `INBOX_PASSWORD`,
+  `SITE_URL=https://test.summitgh.com.et`, `NODE_ENV=production`; add the three mail
+  values only if the test host should send alert emails.
+- Startup file: `web/server.cjs` in this repository, uploaded as `server.cjs` at the
+  application root.
+- The first deployment needs its own `node_modules`, so press **Run NPM Install** once
+  in the Node.js App screen (or run `npm ci --omit=dev` over SSH). Later uploads only
+  replace code and build output — see
+  [Deploying from GitHub Actions](#deploying-from-github-actions-ftp) below.
+
+Passenger loads the startup file directly, so it needs its own entry point. It must be
+CommonJS, and it must not pin a port — Passenger replaces the socket `listen()` binds
+to. It is committed as `web/server.cjs`:
+
+```js
+// server.cjs
+const next = require('next');
+const http = require('node:http');
+
+const app = next({ dev: false, dir: __dirname });
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+  http.createServer((req, res) => handle(req, res)).listen(process.env.PORT || 3000);
+});
+```
+
+### Checks specific to a test host
+
+- `SITE_URL` must be set for the **build**, not only at start. `/sitemap.xml` and other
+  routes Next prerenders bake their URLs; verified both ways — a start-time-only
+  override left the sitemap pointing at production, a build with it set moved the
+  sitemap to the test host. Pages rendered per request follow the start-time value.
+- Atlas → **Network Access** must allow that server's public IP, or every page that
+  reads content fails with `MongoServerSelectionError`.
+- `npm run db:setup` writes to whatever `MONGODB_URI` points at. Use a separate database
+  for the test host if you want to be sure nothing it does reaches real requests.
+- A test host is public. The generated `robots.txt` still advertises production's
+  sitemap, and nothing stops crawlers indexing the test pages themselves; keep that in
+  mind before leaving it up.
+
+## Deploying from GitHub Actions (FTP)
+
+`.github/workflows/deploy.yml` builds in CI and uploads the result over FTP. It runs
+from the Actions tab (**Deploy to cPanel** → *Run workflow*), not on every push: a
+hospital site should not publish itself while a change is still being reviewed.
+
+| Target | Builds | Uploads to |
+| --- | --- | --- |
+| `app` | `web/` with `SITE_URL` baked into the build | the Node app root (`nodeapps/sgh-test`) |
+| `static` | `dist/` | the static site's web root (`public_html`) |
+
+Both targets use the same FTP account.
+
+### 1. Create the FTP account
+
+cPanel → **Files → FTP Accounts → Add FTP Account**:
+
+- **Log in**: `deploy@summitgh.com.et` (the name is yours to choose; note it exactly)
+- **Password**: use *Password Generator* and copy it — cPanel shows it only once
+- **Directory**: `/` (or leave it blank) so the account can reach both
+  `nodeapps/sgh-test` and `public_html`. A directory such as `nodeapps/sgh-test` jails
+  the account there; in that case set `APP_REMOTE_DIR` to `.` and create a second
+  account for `public_html` with `STATIC_REMOTE_DIR=.`
+- **Quota**: unlimited
+
+This is a deploy-only account, not the main cPanel login, but it can write anywhere in
+the home directory — treat its password like the hosting password, and keep it in
+GitHub secrets rather than in this repository. It can be deleted between deployments
+and re-created when needed.
+
+### 2. Add the secrets to GitHub
+
+Repository → **Settings → Secrets and variables → Actions**.
+
+Secrets:
+
+| Name | Value |
+| --- | --- |
+| `FTP_SERVER` | the FTP hostname cPanel shows, e.g. `ftp.summitgh.com.et` (an IP works too) |
+| `FTP_USERNAME` | the account from step 1, e.g. `deploy@summitgh.com.et` |
+| `FTP_PASSWORD` | that account's password |
+
+Variables (optional, defaults in brackets):
+
+| Name | Value |
+| --- | --- |
+| `FTP_PORT` | [`21`] |
+| `APP_REMOTE_DIR` | [`nodeapps/sgh-test`] |
+| `STATIC_REMOTE_DIR` | [`public_html`] |
+| `SITE_URL` | [`https://test.summitgh.com.et`] — baked into the app build |
+
+Nothing else belongs in GitHub: `MONGODB_URI`, `INBOX_PASSWORD` and the three mail
+values stay in the cPanel Node app's environment.
+
+### 3. First run
+
+The `app` target expects a prepared application: the Node app created in cPanel with
+`server.cjs` as its startup file, its environment values set, and `node_modules`
+installed once. The workflow uploads the code and an Ubuntu-built `.next`, then writes
+`tmp/restart.txt`, which makes Passenger reload the app.
+
+Actions → **Deploy to cPanel** → *Run workflow* → target `app`. A green run ends with
+the mirror summary; open `https://test.summitgh.com.et/` and work through the
+first-deploy checks above.
+
+### What breaks this, in order of likelihood
+
+- **TLS**: the workflow requires FTPS with a verified certificate
+  (`ftp:ssl-force yes`, `ssl:verify-certificate yes`). If the host's FTP certificate is
+  self-signed the run stops at login — use the `FTP_SERVER` name that matches the
+  certificate. Only a host with no valid certificate at all should have that line set
+  to `no`, because the password would then travel over an unverified channel.
+- **Login refused**: some hosts restrict FTP by IP or require the connection from an
+  allowed address. Check cPanel's FTP/security settings if the password is definitely
+  right.
+- **Wrong remote path**: `cd` into a missing directory fails the run immediately. The
+  paths are relative to the FTP account's home directory.
+- **Upload was fine, the app is not**: the `.next` was built on Ubuntu. If Passenger
+  errors after a green run, rebuild on the server (`npm ci && npm run build` over SSH);
+  the code and `server.cjs` are already there.
+- **Errors during a deploy**: the workflow deletes `.next` before uploading the new
+  one, so the test host can return 500 for the length of the upload. That is acceptable
+  on a test host; on production, deploy to a second application root and switch the
+  URL instead.
 
 ## cPanel (the static site only)
 

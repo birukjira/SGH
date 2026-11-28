@@ -1,0 +1,155 @@
+name: Deploy to cPanel
+
+# Manual on purpose: a hospital site should not publish itself on every push.
+# Run it from the Actions tab once the FTP secrets below exist, then add a
+# `push:` trigger when the manual runs have proven reliable.
+#
+# Secrets (Settings -> Secrets and variables -> Actions -> Secrets):
+#   FTP_SERVER    FTP hostname from cPanel, e.g. ftp.summitgh.com.et
+#   FTP_USERNAME  the deploy FTP account, e.g. deploy@summitgh.com.et
+#   FTP_PASSWORD  that account's password
+#
+# Variables (same screen, "Variables" tab; all optional):
+#   FTP_PORT            default 21
+#   APP_REMOTE_DIR      default nodeapps/sgh-test
+#   STATIC_REMOTE_DIR   default public_html
+#   SITE_URL            default https://test.summitgh.com.et (baked into the build)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: What to upload
+        required: true
+        type: choice
+        options: [app, static, both]
+        default: app
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cpanel
+  cancel-in-progress: false
+
+jobs:
+  app:
+    name: Next app -> Node app on cPanel
+    if: inputs.target == 'app' || inputs.target == 'both'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_PORT: ${{ vars.FTP_PORT || '21' }}
+      REMOTE_DIR: ${{ vars.APP_REMOTE_DIR || 'nodeapps/sgh-test' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://test.summitgh.com.et' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with the deployed host baked in
+        run: npm run build
+
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Check the FTP settings exist
+        run: |
+          missing=''
+          [ -n "$FTP_SERVER" ] || missing="$missing FTP_SERVER"
+          [ -n "$FTP_USERNAME" ] || missing="$missing FTP_USERNAME"
+          [ -n "$FTP_PASSWORD" ] || missing="$missing FTP_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Add them under Settings -> Secrets and variables -> Actions, then run again."
+            exit 1
+          fi
+
+      - name: Upload the app and restart Passenger
+        env:
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/deploy"
+          printf 'deploy %s at %s\n' "$GITHUB_SHA" "$(date -u +%FT%TZ)" > "$RUNNER_TEMP/deploy/restart.txt"
+          cat > "$RUNNER_TEMP/deploy/upload.lftp" <<EOF
+          set ftp:ssl-allow yes
+          set ftp:ssl-force yes
+          set ssl:verify-certificate yes
+          set ftp:list-options -a
+          set net:max-retries 2
+          set net:timeout 30
+          set mirror:parallel-transfer-count 4
+          cd $REMOTE_DIR
+          rm -rf .next
+          mirror -R --verbose=1 --no-perms -x '^node_modules' -x '^tmp' -x '^\.git' -x '^\.dev\.vars$' -x '^\.env' . .
+          mkdir -p tmp
+          put "$RUNNER_TEMP/deploy/restart.txt" -o tmp/restart.txt
+          EOF
+          lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_SERVER:$FTP_PORT" -f "$RUNNER_TEMP/deploy/upload.lftp"
+
+  static:
+    name: Static site -> public_html
+    if: inputs.target == 'static' || inputs.target == 'both'
+    runs-on: ubuntu-latest
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_PORT: ${{ vars.FTP_PORT || '21' }}
+      REMOTE_DIR: ${{ vars.STATIC_REMOTE_DIR || 'public_html' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the static site
+        run: node src/build.mjs
+
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Check the FTP settings exist
+        run: |
+          missing=''
+          [ -n "$FTP_SERVER" ] || missing="$missing FTP_SERVER"
+          [ -n "$FTP_USERNAME" ] || missing="$missing FTP_USERNAME"
+          [ -n "$FTP_PASSWORD" ] || missing="$missing FTP_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing. Add them under Settings -> Secrets and variables -> Actions, then run again."
+            exit 1
+          fi
+
+      - name: Upload dist/
+        env:
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -eu
+          cat > "$RUNNER_TEMP/upload.lftp" <<EOF
+          set ftp:ssl-allow yes
+          set ftp:ssl-force yes
+          set ssl:verify-certificate yes
+          set ftp:list-options -a
+          set net:max-retries 2
+          set net:timeout 30
+          set mirror:parallel-transfer-count 4
+          cd $REMOTE_DIR
+          mirror -R --verbose=1 --no-perms -x '^\.DS_Store$' dist/ .
+          put dist/.htaccess -o .htaccess
+          EOF
+          lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_SERVER:$FTP_PORT" -f "$RUNNER_TEMP/upload.lftp"

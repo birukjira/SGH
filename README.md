@@ -239,8 +239,10 @@ whatever the page has scrolled past. Paste it into the devtools console and call
   `NOTIFY_EMAIL_TO` and `NOTIFY_EMAIL_FROM` to have new requests emailed to the
   front desk as well as saved in the inbox.
 
-Both paths, including Atlas network access, secrets, seeding and first-deploy checks,
-are in [`docs/deployment.md`](docs/deployment.md).
+Both can also be built and uploaded by `.github/workflows/deploy.yml`, which deploys
+to cPanel over FTP when run from the Actions tab. Both paths, including Atlas network
+access, secrets, seeding and first-deploy checks, are in
+[`docs/deployment.md`](docs/deployment.md).
 
 ---
 

@@ -8,6 +8,12 @@ MONGODB_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites
 # The staff inbox at /inbox and /inbox/login requires this to be set.
 INBOX_PASSWORD="choose-a-long-front-desk-password"
 
+# Optional: the public address of this deployment. Production is
+# https://summitgeneralhospital.com; set this on a test host (for example
+# https://test.summitgh.com.et) so canonical links, the sitemap and the inbox
+# link in alert emails point at that host instead of production.
+SITE_URL=""
+
 # Optional: email the front desk when a request arrives, so it is not left
 # waiting in /inbox. Leave these unset and nothing is sent (requests are still
 # saved). All three are needed to turn alerts on: an API key from the mail
