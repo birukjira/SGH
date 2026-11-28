@@ -1,4 +1,5 @@
 import { getDb, nextId, nowIso } from './mongo';
+import { queueFrontDeskAlert } from './notify';
 import { appointmentErrors, type AppointmentInput, type AppointmentResult } from './appointment-slots';
 
 /**
@@ -76,6 +77,16 @@ export async function requestAppointment(
       status: 'new',
       handled_at: null,
       created_at: nowIso(),
+    });
+
+    // Sent after the response, and never able to fail the request.
+    queueFrontDeskAlert({
+      subject: `New appointment request — ${ref}`,
+      lines: [
+        `${firstName} ${lastName} asked for ${input.department}${input.doctor ? ` (${input.doctor})` : ''}.`,
+        `Preferred: ${input.preferredDate} at ${input.preferredTime}`,
+        `Phone: ${phone}`,
+      ],
     });
 
     return {

@@ -1,4 +1,5 @@
 import { getDb, nextId, nowIso } from './mongo';
+import { queueFrontDeskAlert } from './notify';
 
 /** Contact form: validation and the single write path into `messages`. */
 
@@ -91,6 +92,17 @@ export async function submitContact(formData: FormData): Promise<ContactState> {
       status: 'new',
       source_page: '/contact',
       created_at: nowIso(),
+    });
+
+    // Sent after the response. The message body stays in /inbox; the alert
+    // carries only the routing detail.
+    queueFrontDeskAlert({
+      subject: `New contact message — ${subject}`,
+      lines: [
+        `${name} wrote about ${subject}.`,
+        `Email: ${email}`,
+        ...(phone ? [`Phone: ${phone}`] : []),
+      ],
     });
   } catch (error) {
     console.error('contact message insert failed', error);

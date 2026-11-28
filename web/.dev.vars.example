@@ -7,3 +7,11 @@ MONGODB_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites
 
 # The staff inbox at /inbox and /inbox/login requires this to be set.
 INBOX_PASSWORD="choose-a-long-front-desk-password"
+
+# Optional: email the front desk when a request arrives, so it is not left
+# waiting in /inbox. Leave these unset and nothing is sent (requests are still
+# saved). All three are needed to turn alerts on: an API key from the mail
+# provider, the address the front desk actually reads, and a verified sender.
+RESEND_API_KEY=""
+NOTIFY_EMAIL_TO="front-desk@example.com"
+NOTIFY_EMAIL_FROM="Summit General Hospital <alerts@example.com>"
