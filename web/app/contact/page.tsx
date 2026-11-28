@@ -59,7 +59,7 @@ export default function ContactPage() {
               <Icon name="phone" />
               <h3>Call us</h3>
               <p>
-                Front desk: Monday–Saturday, 8:00 AM – 6:00 PM.
+                Front desk hours are not published here yet — call to confirm.
                 <br />
                 Emergency line: 24 hours.
               </p>
@@ -122,7 +122,7 @@ export default function ContactPage() {
               <ContactForm />
 
               <p className="small-note" style={{ marginTop: 12 }}>
-                We reply during office hours. For an urgent medical concern, call{' '}
+                We reply as soon as we can. For an urgent medical concern, call{' '}
                 <a href="tel:+251111132702" style={{ fontWeight: 700, color: 'var(--ink)' }}>
                   +251 111 132 702
                 </a>
@@ -146,7 +146,7 @@ export default function ContactPage() {
                     <a href="mailto:info@summitgh.com.et">info@summitgh.com.et</a>
                   </div>
                   <div>
-                    <Icon name="clock" /> Mon–Sat, 8:00 AM – 6:00 PM
+                    <Icon name="clock" /> Front desk hours: call to confirm
                   </div>
                 </div>
               </div>

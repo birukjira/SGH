@@ -1,7 +1,7 @@
 // Summit General Hospital — MongoDB Atlas setup.
 //
 // Creates the collections and indexes, writes the seed content (departments,
-// consultants, services, testimonials), and initialises the id counters.
+// consultants, services), and initialises the id counters.
 // Safe to re-run: seed rows are upserted by id and nothing staff created is
 // deleted.
 //
@@ -208,47 +208,11 @@ const postCategories = [
   { id: 3, slug: 'services', name: 'Services and clinics', sort_order: 3 },
 ];
 
-const testimonials = [
-  {
-    id: 1,
-    patient_name: 'Mahlet A.',
-    patient_meta: 'Lemi Kura, Addis Ababa',
-    quote: 'The nurses explained everything to my mother in Amharic. That made all the difference.',
-    rating: null,
-    source: 'website',
-    source_url: null,
-    source_review_id: null,
-    is_published: 1,
-    is_featured: 1,
-    sort_order: 1,
-  },
-  {
-    id: 2,
-    patient_name: 'Yonas T.',
-    patient_meta: 'Summit, Addis Ababa',
-    quote: 'I came in late at night with chest pain. Someone saw me straight away and told me what was happening.',
-    rating: null,
-    source: 'website',
-    source_url: null,
-    source_review_id: null,
-    is_published: 1,
-    is_featured: 1,
-    sort_order: 2,
-  },
-  {
-    id: 3,
-    patient_name: 'Sara & Dawit',
-    patient_meta: 'CMC, Addis Ababa',
-    quote: "Our daughter's first hospital visit was calm, not frightening. We knew what to expect at every step.",
-    rating: null,
-    source: 'website',
-    source_url: null,
-    source_review_id: null,
-    is_published: 1,
-    is_featured: 1,
-    sort_order: 3,
-  },
-];
+// No patient stories are seeded. The three quotes that used to live here were
+// written as examples and were never real patient statements, so publishing them
+// put words in patients' mouths. Add a quote only after the patient (or their
+// family) has agreed in writing to be named and quoted.
+const testimonials = [];
 
 async function main() {
   const uri = localVar('MONGODB_URI');
@@ -351,7 +315,6 @@ async function main() {
   await upsert('service_categories', serviceCategories);
   await upsert('services', services);
   await upsert('post_categories', postCategories);
-  await upsert('testimonials', testimonials);
 
   // Membership is a set, so the seeded consultants' links are rewritten.
   const seededDoctorIds = doctors.map((doctor) => doctor.id);

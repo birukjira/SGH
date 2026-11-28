@@ -418,8 +418,8 @@ export function AppointmentForm({
                   ))}
                 </div>
                 <span className="field__help" style={{ marginTop: 8 }}>
-                  Clinic hours are Monday to Saturday, 8:00 AM – 6:00 PM. Emergency care is open
-                  24/7.
+                  Clinic hours are not published here yet — we will call you to confirm a time
+                  that works. Emergency care is open 24/7.
                 </span>
                 {fieldError('preferredTime')}
               </fieldset>

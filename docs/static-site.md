@@ -140,12 +140,12 @@ This is a **designed template with sample content**, not a verified record of th
 ### Clinical and operational claims
 
 - **Doctors:** the four consultants listed (Dr. Million Seid Muzeyen, Dr. Biniyam Denekew Asrat, Dr. Gosa Abebe Shifera and Dr. Yasin Ahmed Yesuf) are the hospital's own team. Confirm each one's role, clinic days, languages and availability before launch, and add or remove cards as the team changes.
-- **Testimonials:** the three patient quotes are illustrative samples, not real patient statements. Replace them with approved, consented feedback or remove the section.
+- **Testimonials:** the three illustrative quotes have been removed from the site and the seed. The home page now says that stories are published only with written consent. Add real, consented quotes to the `testimonials` collection when you have them.
 - **Services:** the 18 services and their descriptions are a typical general-hospital list. Confirm each one is actually offered, and correct department names.
-- **Statistics:** “15+ clinical specialties”, “3 languages”, “18 services” and “24/7 emergency & inpatient care” must be confirmed.
+- **Statistics:** the “15+ clinical specialties” and “3 languages” claims have been removed; the site now shows the seeded counts (4 specialist departments, 18 services). “24/7 emergency & inpatient care” still needs confirmation, as does every service card.
 - **Emergency & ambulance:** the site uses `+251 111 132 702` for the 24/7 emergency line and ambulance. Confirm this is the correct emergency number, and that the hospital offers the ambulance service described.
-- **Hours:** outpatient clinics are shown as Monday–Saturday, 8:00–18:00. Visiting hours (general wards, maternity, children’s ward, ICU) are samples. Confirm all hours with the ward teams.
-- **Insurance:** “major Ethiopian insurers” and direct billing are generic claims. Confirm which insurers and plans you actually accept, and adjust the wording.
+- **Hours:** no opening hours are stated anywhere. The sample visiting-hours table was removed, and the outpatient-clinic (Monday–Saturday, 8:00 AM – 6:00 PM) and front-desk hours have since been replaced with “call to confirm”. Confirm outpatient, front-desk and per-ward visiting hours with the hospital, then add all three back. The appointment form’s preferred-time list (8:30 AM – 5:00 PM) is a request window only, not a claim about hours.
+- **Insurance:** the generic “major insurers / direct billing” claim has been replaced with wording that says the list is not published yet. Replace it with the insurers and plans the hospital actually bills directly.
 - **Policies:** the admissions steps, “one adult companion”, patient rights/responsibilities, feedback process and medical-records process are written as reasonable defaults. Have administration review them.
 - **Privacy notice:** written as a general website notice. Have it reviewed for Ethiopian data-protection and medical-confidentiality requirements.
 
@@ -276,7 +276,7 @@ summit-general-hospital/
 ## 9. A quick pre-launch checklist
 
 - [ ] Confirm consultant roles, clinic days and availability
-- [ ] Replace or remove sample patient testimonials
+- [x] Remove sample patient testimonials (done — add consented quotes when available)
 - [ ] Confirm services, hours, emergency/ambulance line and insurance
 - [ ] Replace stock photography with real facility/team photos (with consent)
 - [ ] Confirm the map pin and address

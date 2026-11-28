@@ -65,11 +65,11 @@ export default async function HomePage() {
               </span>
               <span className="trust-item">
                 <Icon name="stethoscope" />
-                15+ clinical specialties
+                4 specialist departments
               </span>
               <span className="trust-item">
-                <Icon name="globe" />
-                Amharic · English · Afaan Oromo
+                <Icon name="calendar" />
+                Consultant-led outpatient clinics
               </span>
             </div>
           </div>
@@ -172,7 +172,7 @@ export default async function HomePage() {
               <ul className="ticks">
                 <li>
                   <Icon name="check" />
-                  Consultant-led care across 15+ specialties
+                  Consultant-led care across four departments
                 </li>
                 <li>
                   <Icon name="check" />
@@ -180,7 +180,7 @@ export default async function HomePage() {
                 </li>
                 <li>
                   <Icon name="check" />
-                  Care in Amharic, English and Afaan Oromo
+                  One campus for clinics, diagnostics and surgery
                 </li>
               </ul>
               <div className="split__actions">
@@ -202,14 +202,12 @@ export default async function HomePage() {
               <span>Emergency &amp; inpatient care</span>
             </div>
             <div className="stat">
-              <strong>
-                15<sup>+</sup>
-              </strong>
-              <span>Clinical specialties</span>
+              <strong>4</strong>
+              <span>Specialist departments</span>
             </div>
             <div className="stat">
-              <strong>3</strong>
-              <span>Languages spoken</span>
+              <strong>18</strong>
+              <span>Services on one campus</span>
             </div>
             <div className="stat">
               <strong>1</strong>
@@ -471,36 +469,44 @@ export default async function HomePage() {
         <div className="wrap">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Patient experiences</p>
-              <h2>Care you can feel.</h2>
+              <p className="eyebrow">Patient stories</p>
+              <h2>Shared only with consent.</h2>
             </div>
             <div>
               <p className="lede">
-                The small things — a clear explanation, a returned call, a calmer waiting room —
-                are the care.
+                We publish a patient&apos;s words only when the patient, or their family, has
+                agreed in writing. Nothing is quoted here until then.
               </p>
             </div>
           </div>
 
-          <div className="story-grid">
-            {testimonials.map((story) => (
-              <figure className="story" key={story.name}>
-                <span className="story__mark" aria-hidden="true">
-                  <Icon name="quote" />
-                </span>
-                <blockquote>“{story.quote}”</blockquote>
-                <figcaption>
-                  <span className="story__avatar" aria-hidden="true">
-                    {story.initials}
+          {testimonials.length > 0 ? (
+            <div className="story-grid">
+              {testimonials.map((story) => (
+                <figure className="story" key={story.name}>
+                  <span className="story__mark" aria-hidden="true">
+                    <Icon name="quote" />
                   </span>
-                  <span className="story__who">
-                    <strong>{story.name}</strong>
-                    <span>{story.meta}</span>
-                  </span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+                  <blockquote>“{story.quote}”</blockquote>
+                  <figcaption>
+                    <span className="story__avatar" aria-hidden="true">
+                      {story.initials}
+                    </span>
+                    <span className="story__who">
+                      <strong>{story.name}</strong>
+                      <span>{story.meta}</span>
+                    </span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p className="lede" style={{ maxWidth: '62ch' }}>
+              If you would like to share your experience of care here,{' '}
+              <Link href="/contact">send us a message</Link>. We will ask for your written
+              consent before anything is published.
+            </p>
+          )}
         </div>
       </section>
 
@@ -560,7 +566,7 @@ export default async function HomePage() {
                 <Icon name="clock" />
                 <span>
                   <strong>Hours</strong>
-                  <span>Emergency 24/7 · Outpatient clinics Mon–Sat, 8:00–18:00</span>
+                  <span>Emergency 24/7 · Outpatient hours: call to confirm</span>
                 </span>
               </li>
               <li>

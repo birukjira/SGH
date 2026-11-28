@@ -134,7 +134,7 @@
         throw new Error((payload && payload.message) || 'We could not send your message.');
       }
 
-      showStatus('Thank you — your message is on its way. Our team will reply during office hours.', 'success');
+      showStatus('Thank you — your message is on its way. Our team will reply as soon as we can.', 'success');
       form.reset();
     } catch (error) {
       const message =

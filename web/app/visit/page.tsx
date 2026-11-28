@@ -54,7 +54,7 @@ const FAQ = [
   ],
   [
     'What insurance do you accept?',
-    'We work with major Ethiopian insurers and offer direct billing where your plan allows. Cover varies by plan and procedure. Bring your insurance card and we will check your cover before your consultation. If you are paying yourself, ask for an estimate before non-emergency treatment.',
+    'We do not list accepted insurers here, because cover depends on your plan and procedure. Bring your insurance card or policy details and ask us before your consultation — we will tell you what is covered and what you would pay yourself.',
   ],
   [
     'Can I choose my doctor?',
@@ -76,13 +76,6 @@ const FAQ = [
     'How do I give feedback or complain?',
     'Tell any member of staff, ask for the ward or department manager, or send us a message. Complaints are reviewed by our leadership team and do not affect your care.',
   ],
-];
-
-const HOURS = [
-  ['General wards', 'Daily, 8:00 AM – 8:00 PM'],
-  ['Maternity', 'Daily, 10:00 AM – 12:00 PM & 4:00 PM – 7:00 PM'],
-  ["Children's ward", 'One parent or guardian, 24 hours'],
-  ['Intensive care', 'Daily, 11:00 AM – 12:00 PM & 5:00 PM – 6:00 PM'],
 ];
 
 function TickList({ items }: { items: string[] }) {
@@ -121,11 +114,11 @@ export default function VisitPage() {
             <aside className="page-hero__aside">
               <p className="eyebrow">Visiting hours</p>
               <p>
-                General wards: daily, 8:00 AM – 8:00 PM. Intensive care has shorter visiting
-                windows — please check with the ward team.
+                Visiting hours differ by ward and are not published here yet. Please call ahead so
+                the ward team can tell you when to come.
               </p>
               <Link href="/visit#visiting-hours">
-                See all hours
+                More on visiting
                 <Icon name="arrow" />
               </Link>
             </aside>
@@ -153,7 +146,8 @@ export default function VisitPage() {
               <p>
                 Emergency: 24 hours, every day.
                 <br />
-                Outpatient clinics: Monday–Saturday, 8:00 AM – 6:00 PM.
+                Outpatient clinic hours are not published here yet — call{' '}
+                <a href="tel:+251111132702">+251 111 132 702</a> to confirm before you travel.
               </p>
               <Link href="/appointment">Request an appointment</Link>
             </div>
@@ -276,33 +270,15 @@ export default function VisitPage() {
             <p className="eyebrow">Visiting hours</p>
             <h2>Time together, protected.</h2>
             <p>
-              Visitors are welcome, but rest matters. These hours help us protect quiet time and
-              clinical care. Please check with the ward team if you&apos;re unsure.
+              Visitors are welcome, but rest matters. Each ward sets its own hours to protect quiet
+              time and clinical care, and we have not published them here yet — call{' '}
+              <a href="tel:+251111132702">+251 111 132 702</a> before you travel.
             </p>
           </div>
 
-          <div className="table-wrap">
-            <table className="hours-table">
-              <caption className="sr-only">Visiting hours by ward</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Area</th>
-                  <th scope="col">Visiting hours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {HOURS.map(([area, hours]) => (
-                  <tr key={area}>
-                    <th scope="row">{area}</th>
-                    <td>{hours}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="small-note" style={{ marginTop: 12 }}>
-            Hours may change around clinical needs. Please speak to the ward team before planning a
-            visit.
+          <p className="small-note">
+            Maternity, children&apos;s and intensive care each have their own arrangements. The ward
+            team will confirm them before you visit.
           </p>
 
           <div className="visit-block">
@@ -378,9 +354,9 @@ export default function VisitPage() {
               <p className="eyebrow">Insurance &amp; access</p>
               <h2 style={{ marginTop: 14, maxWidth: '13ch' }}>Cover, clearly explained.</h2>
               <p style={{ marginTop: 12, maxWidth: '46ch' }}>
-                We work with major Ethiopian insurers and offer direct billing where your plan
-                allows. Cover varies by plan and procedure, so we check before your consultation —
-                not after.
+                We have not published which insurers and plans we can bill directly here. Cover
+                varies by plan and procedure, so ask us before your visit: we will confirm what
+                applies to you before treatment, not after.
               </p>
               <p style={{ marginTop: 14 }}>
                 <Link className="link-arrow" href="/contact">
@@ -391,7 +367,7 @@ export default function VisitPage() {
             <TickList
               items={[
                 'Bring your insurance card and we will confirm your cover before your visit.',
-                'Direct billing where your plan allows; otherwise we explain the cost clearly.',
+                'Ask whether your plan can be billed directly here; if not, we explain the cost clearly.',
                 'Paying yourself? Ask for an estimate before non-emergency treatment.',
                 'Emergency care is never delayed for insurance checks.',
               ]}

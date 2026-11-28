@@ -256,11 +256,13 @@ are in [`docs/deployment.md`](docs/deployment.md).
 ## Before this goes live
 
 The design and code are complete; several facts are not yet confirmed by the
-hospital — consultant roles and clinic days, services actually offered, hours,
-the emergency/ambulance line, insurance wording, and patient testimonials. Stock
-photography stands in for the real building and team. Work through the checklist in
-[`docs/static-site.md`](docs/static-site.md) before publishing, and treat the
-privacy notice as a draft for review.
+hospital — consultant roles and clinic days, the services actually offered,
+outpatient and visiting hours, the emergency/ambulance line, which insurers can be
+billed directly, and the patient policies on `/visit`. The three sample patient
+quotes have been removed: nothing is quoted until a patient has consented in
+writing. Stock photography stands in for the real building and team. Work through
+the checklist in [`docs/static-site.md`](docs/static-site.md) before publishing,
+and treat the privacy notice as a draft for review.
 
 ## Credits
 

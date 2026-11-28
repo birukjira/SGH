@@ -57,8 +57,8 @@ export default function AboutPage() {
             <aside className="page-hero__aside">
               <p className="eyebrow">At a glance</p>
               <p>
-                Summit 72, Lemi Kura · 24/7 emergency care · 15+ clinical specialties · Care in
-                Amharic, English and Afaan Oromo.
+                Summit 72, Lemi Kura · 24/7 emergency care · 4 specialist departments · 18
+                services on one campus.
               </p>
               <Link href="/contact">
                 Find us
@@ -236,8 +236,8 @@ export default function AboutPage() {
                 <span>Emergency care</span>
               </div>
               <div className="community-band__fact">
-                <strong>3</strong>
-                <span>Languages spoken</span>
+                <strong>4</strong>
+                <span>Specialist departments</span>
               </div>
               <div className="community-band__fact">
                 <strong>18</strong>

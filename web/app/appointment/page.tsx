@@ -101,7 +101,7 @@ export default async function AppointmentPage({ searchParams }: { searchParams: 
                 <a href="tel:+251111132702">+251 111 132 702</a>
               </p>
               <p style={{ fontSize: '0.68rem', marginTop: 4 }}>
-                Mon–Sat, 8:00 AM – 6:00 PM
+                Front desk hours: call to confirm
                 <br />
                 Emergency line open 24/7
               </p>
@@ -130,8 +130,8 @@ export default async function AppointmentPage({ searchParams }: { searchParams: 
               <Icon name="card" />
               <h3>Insurance and billing</h3>
               <p>
-                We work with major Ethiopian insurers and offer direct billing where your plan
-                allows. Bring your card and we&apos;ll check before your consultation.
+                Cover depends on your plan and procedure, so we do not list insurers here. Bring
+                your card and ask us before your consultation.
               </p>
               <p style={{ marginTop: 9 }}>
                 <Link href="/visit#insurance">Read about insurance</Link>

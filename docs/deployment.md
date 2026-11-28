@@ -45,7 +45,8 @@ that reads content will render:
    `summit_general_hospital`, or name one explicitly.
 
 `npm run db:setup` creates the collections and indexes, upserts the seeded
-departments, consultants, services and testimonials, and initialises the id counters.
+departments, consultants and services, and initialises the id counters. No patient
+stories are seeded — add those only with written consent.
 Running it again is harmless: seeded content is matched by `id`, and requests,
 messages and anything staff added are left alone.
 

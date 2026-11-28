@@ -23,7 +23,7 @@ export type ContactState = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const SUCCESS = 'Thank you — your message is on its way. Our team will reply during office hours.';
+const SUCCESS = 'Thank you — your message is on its way. Our team will reply as soon as we can.';
 const FAILURE = 'We could not send your message. Please call +251 111 132 702 or email info@summitgh.com.et.';
 const BUSY =
   'We have received several messages from this address in the last hour. Please call +251 111 132 702 if your message is urgent.';
