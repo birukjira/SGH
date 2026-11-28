@@ -83,6 +83,7 @@ return (await clientPromise).db(databaseName(uri));
 | `lib/appointments.ts` | Re-validate and insert appointment requests | `/appointment` |
 | `lib/appointment-queue.ts` | Staff queue queries, status changes and counts | `/inbox/appointments`, staff nav badges |
 | `lib/messages.ts` | Validate and insert contact messages | `/contact` |
+| `lib/notify.ts` | Best-effort front-desk email alert after a request is saved (off unless configured) | `appointments.ts`, `messages.ts` |
 | `lib/inbox.ts` | Staff gate (`isStaff`, `requireStaff`), sign-in/out with throttling, messages list, status and notes | every `/inbox` route |
 | `lib/format.ts` | Phone/date helpers used by staff screens | staff screens |
 

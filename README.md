@@ -35,7 +35,9 @@ npm run dev                        # http://localhost:3100
 ```
 
 Open <http://localhost:3100> for the public site and <http://localhost:3100/inbox>
-for the staff area (password from `web/.dev.vars`).
+for the staff area (password from `web/.dev.vars`). New requests are emailed to the
+front desk only once `RESEND_API_KEY`, `NOTIFY_EMAIL_TO` and `NOTIFY_EMAIL_FROM` are
+set; without them everything still lands in `/inbox`.
 
 The database is a MongoDB Atlas cluster, not a file on this machine: create a free
 cluster, add a database user, allow your IP under **Network Access**, and paste the
@@ -233,7 +235,9 @@ whatever the page has scrolled past. Paste it into the devtools console and call
 - **Static site** → upload the contents of `dist/` to `public_html` on cPanel.
 - **Next app** → a Node.js host (VPS, platform app, or any server that can run
   `npm run build` and `npm start`) with `MONGODB_URI` and `INBOX_PASSWORD` in its
-  environment, talking to the same MongoDB Atlas cluster.
+  environment, talking to the same MongoDB Atlas cluster. Add `RESEND_API_KEY`,
+  `NOTIFY_EMAIL_TO` and `NOTIFY_EMAIL_FROM` to have new requests emailed to the
+  front desk as well as saved in the inbox.
 
 Both paths, including Atlas network access, secrets, seeding and first-deploy checks,
 are in [`docs/deployment.md`](docs/deployment.md).

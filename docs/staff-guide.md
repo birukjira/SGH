@@ -24,6 +24,13 @@ staff screen, beside the page title.
 The bar across the top shows counts of new messages and new appointment requests, so
 you can see at a glance whether anything is waiting.
 
+When the hospital has configured the mail settings, each new message and appointment
+request also sends a short email to the front desk, so nothing waits unseen until
+someone next opens `/inbox`. The email carries the name, contact details, what was
+asked for and the appointment reference — never the patient's own message or reason,
+which stay in the inbox. If an email does not arrive, the request is still saved here:
+`/inbox` is the record.
+
 ## Rules the screens follow
 
 **Nothing is deleted. Hiding is not deleting.** A consultant who leaves, or a service

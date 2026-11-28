@@ -52,6 +52,25 @@ messages and anything staff added are left alone.
 
 Open `/inbox` and sign in with the `INBOX_PASSWORD` from `web/.dev.vars`.
 
+### Front-desk email alerts (optional)
+
+A request that only lands in `/inbox` is a request nobody has been told about. When
+`RESEND_API_KEY`, `NOTIFY_EMAIL_TO` and `NOTIFY_EMAIL_FROM` are all set, each saved
+contact message and appointment request also sends one short email to the front desk:
+who to call back, what they asked for, and the reference. The patient's own message
+and reason stay in `/inbox` rather than travelling through mailboxes.
+
+Delivery is best effort and runs after the visitor's response is sent, through
+`after()` in `web/lib/notify.ts`, using the built-in `fetch` — no extra package.
+A mail failure is logged and never turns a saved request into an error. With any of
+the three values missing, alerts are simply off; that is the normal state in local
+development and in the smoke test.
+
+To turn them on: create an API key at the mail provider, verify the sending domain
+(its SPF/DKIM records must pass, or mail will be filtered), and set the three values
+in the host's environment. Send one real request from the public form and confirm the
+email arrives before relying on it.
+
 ### Staff smoke test
 
 With the app running (`npm run dev` or `npm start`), `npm run test:smoke` in `web/`
@@ -105,6 +124,9 @@ The app opens one pooled connection per process from `MONGODB_URI`
 | --- | --- | --- |
 | `MONGODB_URI` | the host's environment (systemd unit, platform dashboard, or `.env` outside git) | cluster connection string, password included |
 | `INBOX_PASSWORD` | the host's environment | the staff inbox password |
+| `RESEND_API_KEY` | the host's environment | optional: sends the front-desk alert for each new request |
+| `NOTIFY_EMAIL_TO` | the host's environment | optional: the address the front desk reads |
+| `NOTIFY_EMAIL_FROM` | the host's environment | optional: verified sender, e.g. `Summit General Hospital <alerts@…>` |
 
 `web/.dev.vars` holds local values only and is git-ignored; never commit a real
 connection string or password. Because the URI contains the database password, treat
