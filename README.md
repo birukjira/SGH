@@ -202,6 +202,7 @@ npx mongosh "$MONGODB_URI" --eval 'db.doctors.find({}, { name: 1, is_active: 1 }
 | Recompile CSS/images for the app | `npm run assets` | `web/` |
 | Typecheck the app (also runs in CI on every push) | `npm run typecheck` | `web/` |
 | Production build | `npm run build` | `web/` |
+| Staff write-path smoke test (app must be running) | `npm run test:smoke` | `web/` |
 | Create/seed the database (safe to re-run) | `npm run db:setup` | `web/` |
 
 Guidelines:

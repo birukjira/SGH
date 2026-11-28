@@ -51,6 +51,21 @@ messages and anything staff added are left alone.
 
 Open `/inbox` and sign in with the `INBOX_PASSWORD` from `web/.dev.vars`.
 
+### Staff smoke test
+
+With the app running (`npm run dev` or `npm start`), `npm run test:smoke` in `web/`
+signs in, then drives the staff forms over HTTP: doctor add / edit / primary-department
+guard / hide / restore, service add / edit / category guard, message note and status
+buttons, the appointment queue's note and status buttons, and the appointment search.
+It reads the action ids out of the rendered pages, so a rebuild does not break it, and
+it removes every record it creates — including when a check fails. `SMOKE_BASE_URL`
+points it at another host; `MONGODB_URI` and `INBOX_PASSWORD` come from the environment
+or `web/.dev.vars`.
+
+The public contact and appointment forms are client components, so the script inserts
+its message and appointment fixtures directly into MongoDB and tests the staff side.
+Counter documents advance with each run; ids stay unique and are never reused.
+
 ### Useful scripts (inside `web/`)
 
 | Script | Does |
@@ -61,6 +76,7 @@ Open `/inbox` and sign in with the `INBOX_PASSWORD` from `web/.dev.vars`.
 | `npm run assets` | recompile CSS/sprite and copy images and fonts |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:setup` | create collections/indexes and seed content in MongoDB |
+| `npm run test:smoke` | end-to-end staff write checks against a running app (see below) |
 
 ## MongoDB Atlas (the database)
 

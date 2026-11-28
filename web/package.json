@@ -7,6 +7,7 @@
     "build": "node scripts/build-assets.mjs && next build",
     "start": "next start -p 3100",
     "typecheck": "tsc --noEmit",
+    "test:smoke": "node scripts/smoke.mjs",
     "assets": "node scripts/build-assets.mjs",
     "db:setup": "node db/setup.mjs"
   },
