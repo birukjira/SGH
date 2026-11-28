@@ -72,8 +72,10 @@ in the host's environment. Send one real request from the public form and confir
 email arrives before relying on it.
 
 `npm run test:notify` checks the payload offline (`fetch` is stubbed): that a configured
-alert posts the right recipient, sender, subject and inbox link, and that an unset key or
-recipient sends nothing. It does not test real delivery — only a live key can do that.
+alert posts the right recipient, sender, subject and inbox link, that an unset key or
+recipient sends nothing, and that the appointment and contact alerts carry routing detail
+only — the patient's reason and the message body never reach the email. It needs no
+database, and it does not test real delivery — only a live key can do that.
 
 ### Staff smoke test
 

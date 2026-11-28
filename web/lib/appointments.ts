@@ -1,3 +1,4 @@
+import { appointmentAlert } from './alerts';
 import { getDb, nextId, nowIso } from './mongo';
 import { queueFrontDeskAlert } from './notify';
 import { appointmentErrors, type AppointmentInput, type AppointmentResult } from './appointment-slots';
@@ -79,15 +80,9 @@ export async function requestAppointment(
       created_at: nowIso(),
     });
 
-    // Sent after the response, and never able to fail the request.
-    queueFrontDeskAlert({
-      subject: `New appointment request — ${ref}`,
-      lines: [
-        `${firstName} ${lastName} asked for ${input.department}${input.doctor ? ` (${input.doctor})` : ''}.`,
-        `Preferred: ${input.preferredDate} at ${input.preferredTime}`,
-        `Phone: ${phone}`,
-      ],
-    });
+    // Sent after the response, and never able to fail the request. The builder
+    // keeps the patient's own words (input.reason) out of the email.
+    queueFrontDeskAlert(appointmentAlert(input, ref, phone));
 
     return {
       ok: true,

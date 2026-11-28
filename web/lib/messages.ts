@@ -1,3 +1,4 @@
+import { contactAlert } from './alerts';
 import { getDb, nextId, nowIso } from './mongo';
 import { queueFrontDeskAlert } from './notify';
 
@@ -96,14 +97,7 @@ export async function submitContact(formData: FormData): Promise<ContactState> {
 
     // Sent after the response. The message body stays in /inbox; the alert
     // carries only the routing detail.
-    queueFrontDeskAlert({
-      subject: `New contact message — ${subject}`,
-      lines: [
-        `${name} wrote about ${subject}.`,
-        `Email: ${email}`,
-        ...(phone ? [`Phone: ${phone}`] : []),
-      ],
-    });
+    queueFrontDeskAlert(contactAlert({ name, email, phone, subject }));
   } catch (error) {
     console.error('contact message insert failed', error);
     return { ok: false, message: FAILURE, errors: {} };

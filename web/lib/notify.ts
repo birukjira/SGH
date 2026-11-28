@@ -1,4 +1,5 @@
 import { after } from 'next/server';
+import type { FrontDeskAlert } from './alerts';
 import { envValue } from './env';
 import { SITE_URL } from './site';
 
@@ -21,12 +22,6 @@ import { SITE_URL } from './site';
 
 const ENDPOINT = 'https://api.resend.com/emails';
 const TIMEOUT_MS = 5000;
-
-type FrontDeskAlert = {
-  subject: string;
-  /** Body lines, in order. Keep them free of clinical detail. */
-  lines: string[];
-};
 
 /**
  * Queue an alert behind the current response. `after()` keeps the patient's
