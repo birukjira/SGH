@@ -322,6 +322,13 @@ first-deploy checks above.
   right.
 - **Wrong remote path**: `cd` into a missing directory fails the run immediately. The
   paths are relative to the FTP account's home directory.
+- **Missing `node_modules`**: the app job now checks for `node_modules` on the server
+  before uploading and fails fast with a clear error if it is absent — run cPanel's
+  **Run NPM Install** once first. Previously a missing `node_modules` would still
+  produce a green run that broke at runtime.
+- **Stale files**: the mirror now prunes files no longer in the build (`--delete`),
+  except `node_modules`, `tmp`, `.git*`, `.env*` and, on the static side, `.well-known`
+  and `cgi-bin`, which are preserved.
 - **Upload was fine, the app is not**: the `.next` was built on Ubuntu. If Passenger
   errors after a green run, rebuild on the server (`npm ci && npm run build` over SSH);
   the code and `server.cjs` are already there.
