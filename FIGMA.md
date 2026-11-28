@@ -24,13 +24,13 @@ Two new pages in your Figma file:
 
 | # | Screen | Size |
 | --- | --- | --- |
-| 01 | Home | 1440 × 7716 |
+| 01 | Home | 1440 × 7416 |
 | 02 | Services | 1440 × 3756 |
 | 03 | Doctors | 1440 × 2616 |
 | 04 | Appointment | 1440 × 2096 |
 | 05 | Contact | 1440 × 3096 |
 | 06 | About | 1440 × 4566 |
-| 07 | Your visit | 1440 × 3486 |
+| 07 | Your visit | 1440 × 3426 |
 | 08 | Home — Mobile | 390 × 2364 |
 | 09 | Appointment — Mobile | 390 × 1734 |
 
@@ -158,7 +158,11 @@ This is a design file, not a working website.
 - Only two mobile screens are included as responsive direction. Desktop frames can be duplicated and adapted for the remaining mobile pages.
 - No prototype connections are set up. You can add them in Figma’s Prototype panel.
 - Photography is the same licensed stock imagery used on the website. Replace it with real Summit photography before publishing.
-- All names, hours, services, testimonials and statistics are **sample content**. Verify them against the hospital’s actual information before using the design publicly. The main `README.md` contains the full pre-launch checklist.
+- No patient quotes are included. The home screen explains that stories are published only with written consent, and the story card on the design-system page is an instruction-filled placeholder.
+- Hours are shown as **“call to confirm”** — visiting hours, outpatient clinic hours and front-desk hours all changed on the live site because the hospital has not confirmed them. The appointment form’s preferred-time list is a request window, not a claim about hours.
+- The statistics are the seeded counts (4 specialist departments, 18 services, one campus), not the earlier “15+ specialties” and “3 languages” claims.
+- Insurance wording says the insurer list is not published yet, rather than claiming direct billing.
+- Consultant names and roles, the 18 service cards, the address and phone number still need the hospital’s confirmation. The main `README.md` contains the full pre-launch checklist.
 
 ---
 

@@ -311,7 +311,7 @@ function buildContactPage(originX) {
 
   const s = section(page, 'Contact details', y, 1660, C.paper);
   const cards = [
-    ['Call us', 'Front desk: Monday–Saturday, 8:00 AM – 6:00 PM.\nEmergency line: 24 hours.', '+251 111 132 702', true, 'phone'],
+    ['Call us', 'Front desk hours are not published here yet — call to confirm.\nEmergency line: 24 hours.', '+251 111 132 702', true, 'phone'],
     ['Visit us', 'Summit 72, Lemi Kura\nAddis Ababa, Ethiopia', 'Open in Google Maps  ↗', false, 'pin'],
     ['Email us', 'General enquiries, appointments, insurance and medical records.', 'info@summitgh.com.et', false, 'mail'],
   ];
@@ -347,7 +347,7 @@ function buildContactPage(originX) {
 
   const info = frame(s, 'Contact info', 900, 780, 440, 640, { fill: C.paper2, radius: 14, stroke: C.line });
   const rows = [
-    ['Front desk', 'Appointments, directions, billing and finding the right department.', '+251 111 132 702\ninfo@summitgh.com.et\nMon–Sat, 8:00 AM – 6:00 PM'],
+    ['Front desk', 'Appointments, directions, billing and finding the right department.', '+251 111 132 702\ninfo@summitgh.com.et\nFront desk hours: call to confirm'],
     ['Medical records', 'To request records or results, contact us with your full name, date of birth and approximate visit date.', 'info@summitgh.com.et'],
     ['Feedback & complaints', 'Compliments and complaints are reviewed by our leadership team. Raising a concern will never affect your care.', 'Choose “Feedback” in the form'],
   ];
@@ -377,7 +377,7 @@ function buildAboutPage(originX) {
     lede: 'A general hospital in Lemi Kura, built on a simple belief: excellent medicine should feel personal. We bring consultant-led care, modern diagnostics and a warm welcome together under one roof.',
     asideEyebrow: 'AT A GLANCE',
     asideTitle: 'Summit 72, Lemi Kura.',
-    asideText: '24/7 emergency care · 15+ clinical specialties · care in Amharic, English and Afaan Oromo.',
+    asideText: '24/7 emergency care · 4 specialist departments · 18 services on one campus.',
     asideLink: 'Find us  ↗',
   });
 
@@ -462,13 +462,13 @@ function buildVisitPage(originX) {
     title: 'Plan your visit.',
     lede: 'A little preparation makes appointments and admissions calmer. Here is what to bring, where to go, and what to expect — plus the people to call if you\'re unsure.',
     asideEyebrow: 'VISITING HOURS',
-    asideTitle: '8:00 AM – 8:00 PM.',
-    asideText: 'General wards, daily. Intensive care has shorter visiting windows — please check with the ward team.',
-    asideLink: 'See all hours  ↓',
+    asideTitle: 'Call to confirm.',
+    asideText: 'Visiting hours differ by ward and are not published here yet. Please call ahead so the ward team can tell you when to come.',
+    asideLink: 'More on visiting  ↓',
   });
 
   const cards = section(page, 'Visit cards', y, 230, C.paper);
-  const items = [['Where to find us', 'Summit 72, Lemi Kura, Addis Ababa. Enter through main reception; emergency care has a separate entrance.', 'pin'], ['Opening hours', 'Emergency: 24 hours. Outpatient clinics: Monday–Saturday, 8:00 AM – 6:00 PM.', 'clock'], ['Talk to someone', 'Our front desk can help with appointments, directions, billing and medical records.', 'phone']];
+  const items = [['Where to find us', 'Summit 72, Lemi Kura, Addis Ababa. Enter through main reception; emergency care has a separate entrance.', 'pin'], ['Opening hours', 'Emergency: 24 hours. Outpatient clinic hours are not published here yet — call +251 111 132 702 to confirm.', 'clock'], ['Talk to someone', 'Our front desk can help with appointments, directions, billing and medical records.', 'phone']];
   items.forEach(([title, copy, iconName], i) => {
     const c = frame(cards, `Visit card / ${title}`, 100 + i * 420, 40, 400, 160, { fill: C.white, radius: 12, stroke: C.line });
     icon(c, iconName, 22, 22, 18, C.clay);
@@ -498,25 +498,21 @@ function buildVisitPage(originX) {
   });
   y += 560;
 
-  const hours = section(page, 'Visiting hours', y, 440, C.sand);
+  const hours = section(page, 'Visiting hours', y, 380, C.sand);
   eyebrow(hours, 100, 40, 'VISITING HOURS');
   addText(hours, 'Heading', 'Time together, protected.', 100, 74, 600, { style: T.h2, color: C.ink });
-  addText(hours, 'Intro', 'Visitors are welcome, but rest matters. These hours help us protect quiet time and clinical care.', 800, 84, 440, { style: T.body, color: C.soft });
-  const table = [['General wards', 'Daily, 8:00 AM – 8:00 PM'], ['Maternity', 'Daily, 10:00 AM – 12:00 PM & 4:00 PM – 7:00 PM'], ['Children\'s ward', 'One parent or guardian, 24 hours'], ['Intensive care', 'Daily, 11:00 AM – 12:00 PM & 5:00 PM – 6:00 PM']];
-  table.forEach(([area, time], i) => {
-    const yy = 190 + i * 50;
-    line(hours, 'Row rule', 100, yy, 1240, C.line, 1);
-    addText(hours, 'Area', area, 100, yy + 15, 400, { font: FONT.sansSemi, size: 11, color: C.ink, lineHeight: 100 });
-    addText(hours, 'Time', time, 600, yy + 15, 740, { font: FONT.sans, size: 11, color: C.soft, lineHeight: 100, align: 'RIGHT' });
-  });
-  y += 440;
+  addText(hours, 'Intro', 'Visitors are welcome, but rest matters. Each ward sets its own hours to protect quiet time and clinical care, and we have not published them here yet.', 800, 84, 440, { style: T.body, color: C.soft });
+  line(hours, 'Call rule', 100, 180, 1240, C.line, 1);
+  addText(hours, 'Call note', 'Call +251 111 132 702 before you travel and the ward team will tell you when to come.', 100, 204, 780, { font: FONT.sans, size: 14, color: C.ink, lineHeight: 150 });
+  addText(hours, 'Ward note', 'Maternity, children\'s and intensive care each have their own arrangements. The ward team will confirm them before you visit.', 100, 244, 1240, { font: FONT.sans, size: 10, color: C.soft, lineHeight: 150 });
+  y += 380;
 
   const insurance = section(page, 'Insurance', y, 260, C.paper);
   const panel = frame(insurance, 'Insurance panel', 100, 20, 1240, 210, { fill: C.paper2, radius: 14, stroke: C.line });
   eyebrow(panel, 28, 28, 'INSURANCE & ACCESS');
   addText(panel, 'Heading', 'Cover, clearly explained.', 28, 60, 420, { font: FONT.serif, size: 30, color: C.ink, lineHeight: 110 });
-  addText(panel, 'Body', 'We work with major Ethiopian insurers and offer direct billing where your plan allows. Cover varies by plan and procedure, so we check before your consultation — not after.', 28, 102, 480, { font: FONT.sans, size: 10, color: C.soft, lineHeight: 150 });
-  ['Bring your insurance card and we will confirm your cover.', 'Direct billing where your plan allows.', 'Ask for an estimate before non-elective treatment.', 'Emergency care is never delayed for insurance checks.'].forEach((item, i) => {
+  addText(panel, 'Body', 'We have not published which insurers and plans we can bill directly here. Cover varies by plan and procedure, so ask us before your visit: we will confirm what applies to you before treatment, not after.', 28, 102, 480, { font: FONT.sans, size: 10, color: C.soft, lineHeight: 150 });
+  ['Bring your insurance card and we will confirm your cover.', 'Ask whether your plan can be billed directly here; if not, we explain the cost.', 'Ask for an estimate before non-elective treatment.', 'Emergency care is never delayed for insurance checks.'].forEach((item, i) => {
     icon(panel, 'check', 600, 44 + i * 34, 14, C.clay);
     addText(panel, `Point ${i + 1}`, item, 622, 42 + i * 34, 580, { font: FONT.sans, size: 10, color: C.soft, lineHeight: 140 });
   });

@@ -38,7 +38,7 @@ function buildMobileHome() {
   button(hero, { x: 20, y: 340, label: 'Book an appointment', kind: 'primary', w: 350, h: 48 });
   button(hero, { x: 20, y: 400, label: 'Explore our services', kind: 'outline', w: 350, h: 48 });
   line(hero, 'Trust rule', 20, 480, 350, C.line, 1);
-  const trust = [['cross', '24/7 emergency care'], ['stethoscope', '15+ clinical specialties'], ['globe', 'Amharic · English · Afaan Oromo']];
+  const trust = [['cross', '24/7 emergency care'], ['stethoscope', '4 specialist departments'], ['calendar', 'Consultant-led outpatient clinics']];
   trust.forEach(([iconName, label], i) => {
     icon(hero, iconName, 20, 502 + i * 28, 14, C.clay);
     addText(hero, 'Trust', label, 42, 500 + i * 28, 320, { font: FONT.sans, size: 10, color: C.soft, lineHeight: 140 });
@@ -59,7 +59,7 @@ function buildMobileHome() {
   const cards = [
     ['Emergency and ambulance', 'Walk in any time, or call ahead so our team can prepare.', '01', 'cross', true],
     ['Book an appointment', 'Choose a department, tell us when suits you, and we\'ll call to confirm.', '02', 'calendar', false],
-    ['Find a doctor', 'Browse consultants by specialty, language and clinic day.', '03', 'stethoscope', false],
+    ['Find a doctor', 'Browse consultants by department, specialty and clinic day.', '03', 'stethoscope', false],
   ];
   cards.forEach(([title, copy, num, iconName, dark], i) => {
     const c = frame(quick, `Quick card / ${title}`, 20, 20 + i * 226, 350, 206, { fill: dark ? C.forest : C.white, radius: 12, stroke: dark ? null : C.line });

@@ -35,7 +35,7 @@ function buildDesignSystem() {
   addText(page, 'Body sample', 'Compassionate, consultant-led care for every stage of life — from everyday check-ups to emergencies, all under one roof in Lemi Kura.', 100, 1140, 520, { style: T.body, color: C.soft });
   eyebrow(page, 760, 952, 'EYEBROW · 11 / 1.8');
   addText(page, 'Eyebrow sample', 'SUMMIT 72 · BOLE, ADDIS ABABA', 760, 990, 500, { style: T.eyebrow, color: C.clay });
-  addText(page, 'Quote sample', '“The nurses explained everything to my mother in Amharic.”', 760, 1060, 520, { style: T.quote, color: C.ink });
+  addText(page, 'Quote sample', 'Patient stories are published only with written consent.', 760, 1060, 520, { style: T.quote, color: C.ink });
 
   eyebrow(page, 100, 1240, '03 · COMPONENTS');
   addText(page, 'Components heading', 'A small kit, used consistently.', 100, 1272, 700, { font: FONT.serif, size: 30, color: C.ink, lineHeight: 110 });
@@ -60,7 +60,7 @@ function buildDesignSystem() {
   serviceCard(page, 100, 1510, sampleService, 0);
   const sampleDoctor = { image: 'doctorMillion', name: 'Dr. Million Seid Muzeyen', role: 'Internist & CEO', focus: 'Adult internal medicine and chronic disease care.', days: 'Clinic days — call to confirm', booking: 'By phone or appointment form', dept: 'Internal medicine' };
   doctorCard(page, 520, 1510, sampleDoctor);
-  storyCard(page, 940, 1510, { quote: '“The nurses explained everything to my mother in Amharic. That made all the difference.”', initials: 'MA', name: 'Mahlet A.', place: 'Lemi Kura, Addis Ababa' });
+  storyCard(page, 940, 1510, { quote: 'Add a patient quote here only after written consent.', initials: '—', name: 'Example card', place: 'Not a real patient' });
 
   eyebrow(page, 100, 1960, '04 · ICONS');
   addText(page, 'Icons heading', 'Line icons, drawn to match the type.', 100, 1992, 700, { font: FONT.serif, size: 30, color: C.ink, lineHeight: 110 });

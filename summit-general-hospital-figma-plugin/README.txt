@@ -85,9 +85,11 @@ What is intentionally not included
   images used on the website and should be replaced with real facility/team
   photos before publishing.
   • Doctor cards show the hospital's four real consultants, with their
-  portraits embedded from the website. Hours, services and testimonials
-  should still be verified before using this design publicly. See the main
-  project README for the full checklist.
+  portraits embedded from the website. No patient quotes are placed: the home
+  screen and the story card explain that stories appear only with written
+  consent. Hours and insurance read "call to confirm" because the hospital has
+  not confirmed them, and the statistics are the seeded counts. Service details
+  still need confirmation; see the main project README for the checklist.
 
 If you want the remaining mobile screens or prototype links added, the same
 component patterns can be extended.

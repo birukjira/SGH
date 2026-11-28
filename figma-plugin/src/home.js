@@ -19,11 +19,11 @@ const HOME_DOCTORS = [
   { image: 'doctorYasin', name: 'Dr. Yasin Ahmed Yesuf', role: 'Consultant Pediatrician', focus: 'Child health, newborn follow-up and childhood illness.', days: 'Clinic days — call to confirm', booking: 'By phone or appointment form', dept: 'Pediatrics' },
 ];
 
-const HOME_STORIES = [
-  { quote: '“The nurses explained everything to my mother in Amharic. That made all the difference.”', initials: 'MA', name: 'Mahlet A.', place: 'Lemi Kura, Addis Ababa' },
-  { quote: '“I came in late at night with chest pain. Someone saw me straight away and told me what was happening.”', initials: 'YT', name: 'Yonas T.', place: 'Summit, Addis Ababa' },
-  { quote: '“Our daughter\'s first hospital visit was calm, not frightening. We knew what to expect at every step.”', initials: 'SD', name: 'Sara & Dawit', place: 'CMC, Addis Ababa' },
-];
+// No patient stories are placed in the design. The three quotes that used to sit
+// here were written as examples, never real patient statements — publishing them
+// put words in patients' mouths. Add a story only after the patient, or their
+// family, has agreed in writing.
+const HOME_STORIES = [];
 
 function eyebrow(parent, x, y, label, color = C.clay) {
   line(parent, 'Eyebrow / rule', x, y + 6, 26, color, 0.8, 1);
@@ -192,8 +192,8 @@ function buildHero(page, y) {
 
   line(s, 'Trust rule', 100, 640, 600, C.line, 1);
   trustItem(s, 100, 665, 'cross', '24/7 emergency care');
-  trustItem(s, 300, 665, 'stethoscope', '15+ clinical specialties');
-  trustItem(s, 545, 665, 'globe', 'Amharic · English · Afaan Oromo');
+  trustItem(s, 300, 665, 'stethoscope', '4 specialist departments');
+  trustItem(s, 545, 665, 'calendar', 'Consultant-led outpatient clinics');
 
   addImage(s, 'Hero image', 'hero', 820, 58, 500, 625, { arch: true, radius: 14 });
   const arch = rect(s, 'Arch outline', 804, 42, 532, 657, { stroke: C.gold, strokeOpacity: 0.6, radius: 266, strokeWeight: 1 });
@@ -226,7 +226,7 @@ function buildQuick(page, y) {
   const s = section(page, 'Quick access', y, 270, C.paper);
   quickCard(s, 100, 15, '01', 'cross', 'Emergency and ambulance', 'Walk in any time, or call ahead so our team can prepare for your arrival.', 'Call +251 111 132 702', true);
   quickCard(s, 520, 15, '02', 'calendar', 'Book an appointment', 'Choose a department, tell us when suits you, and we\'ll call to confirm.', 'Start a request');
-  quickCard(s, 940, 15, '03', 'stethoscope', 'Find a doctor', 'Browse consultants by specialty, language and clinic day.', 'Open the directory');
+  quickCard(s, 940, 15, '03', 'stethoscope', 'Find a doctor', 'Browse consultants by department, specialty and clinic day.', 'Open the directory');
   return y + 270;
 }
 
@@ -243,9 +243,9 @@ function buildWelcome(page, y) {
   addText(s, 'Body', 'At Summit General Hospital, good care starts with listening. Our consultants, nurses and support teams work together under one roof — so your questions are answered, your options are clear, and your family stays close.', 720, 282, 560, { style: T.body, color: C.soft });
   addText(s, 'Body 2', 'From our emergency department to outpatient clinics, diagnostics and operating theatres, we bring dependable care to the Summit 72 community and beyond.', 720, 402, 560, { style: T.body, color: C.soft });
   const ticks = [
-    'Consultant-led care across 15+ specialties',
+    'Consultant-led care across four departments',
     'Laboratory, imaging and pharmacy on site',
-    'Care in Amharic, English and Afaan Oromo',
+    'One campus for clinics, diagnostics and surgery',
   ];
   ticks.forEach((item, i) => {
     icon(s, 'check', 720, 498 + i * 28, 15, C.clay);
@@ -259,7 +259,7 @@ function buildWelcome(page, y) {
 function buildStats(page, y) {
   const s = section(page, 'Stats', y, 180, C.paper);
   line(s, 'Top rule', 100, 0, 1240, C.line, 1);
-  const stats = [['24/7', 'EMERGENCY & INPATIENT CARE'], ['15+', 'CLINICAL SPECIALTIES'], ['3', 'LANGUAGES SPOKEN'], ['1', 'CONNECTED CAMPUS IN BOLE']];
+  const stats = [['24/7', 'EMERGENCY & INPATIENT CARE'], ['4', 'SPECIALIST DEPARTMENTS'], ['18', 'SERVICES ON ONE CAMPUS'], ['1', 'CAMPUS IN LEMI KURA']];
   stats.forEach(([value, label], i) => {
     const x = 100 + i * 310;
     addText(s, `Stat ${value}`, value, x, 26, 260, { font: FONT.serif, size: 56, color: C.ink, lineHeight: 100 });
@@ -360,12 +360,17 @@ function buildDoctors(page, y) {
 }
 
 function buildStories(page, y) {
-  const s = section(page, 'Patient stories', y, 720, C.paper);
-  eyebrow(s, 100, 76, 'PATIENT EXPERIENCES');
-  addText(s, 'Heading', 'Care you can feel.', 100, 108, 600, { style: T.h2, color: C.ink });
-  addText(s, 'Intro', 'The small things — a clear explanation, a returned call, a calmer waiting room — are the care.', 800, 120, 440, { style: T.body, color: C.soft });
-  HOME_STORIES.forEach((story, i) => storyCard(s, 100 + i * 420, 250, story));
-  return y + 720;
+  const s = section(page, 'Patient stories', y, 420, C.paper);
+  eyebrow(s, 100, 76, 'PATIENT STORIES');
+  addText(s, 'Heading', 'Shared only with consent.', 100, 108, 600, { style: T.h2, color: C.ink });
+  addText(s, 'Intro', 'We publish a patient\'s words only when the patient, or their family, has agreed in writing. Nothing is quoted here until then.', 800, 120, 440, { style: T.body, color: C.soft });
+
+  if (HOME_STORIES.length) {
+    HOME_STORIES.forEach((story, i) => storyCard(s, 100 + i * 420, 250, story));
+  } else {
+    addText(s, 'Consent note', 'If you would like to share your experience of care here, send us a message. We will ask for your written consent before anything is published.', 100, 250, 780, { font: FONT.sans, size: 14, color: C.soft, lineHeight: 160 });
+  }
+  return y + 420;
 }
 
 function buildMap(page, y) {
@@ -384,7 +389,7 @@ function buildMap(page, y) {
   const facts = [
     ['pin', 'Address', 'Summit 72, Lemi Kura, Addis Ababa, Ethiopia'],
     ['phone', 'Phone', '+251 111 132 702'],
-    ['clock', 'Hours', 'Emergency 24/7 · Outpatient clinics Mon–Sat, 8:00–18:00'],
+    ['clock', 'Hours', 'Emergency 24/7 · Outpatient hours: call to confirm'],
     ['mail', 'Email', 'info@summitgh.com.et'],
   ];
   facts.forEach(([iconName, title, value], i) => {
