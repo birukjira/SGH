@@ -96,15 +96,12 @@ function isDuplicateKey(error: unknown): boolean {
  * (`/inbox/doctors/12`), so documents keep an `id` field filled from here
  * instead of exposing ObjectIds.
  *
- * `$inc` is atomic, so concurrent writers never receive the same id. Two cases
- * still need care:
- *
- * - When the counter document does not exist yet, two writers can both try to
- *   create it and one gets a duplicate-key error. It is retried once against
- *   the document the winner created.
- * - A counter that is missing while documents already exist (a restored or
- *   hand-edited database) would restart at 1 and reuse ids. The first
- *   allocation for a counter is checked against the highest stored id.
+ * `$inc` is atomic, so concurrent writers never receive the same id. The one
+ * remaining race is the very first write to a fresh database: two writers can
+ * both try to create the counter document and one gets a duplicate-key error,
+ * so that is retried once against the document the winner created. Drift
+ * between a counter and the documents already stored cannot cause a silent
+ * overwrite, because every collection has a unique index on `id`.
  */
 export async function nextId(db: Db, name: CounterName): Promise<number> {
   const counters = db.collection<{ _id: string; seq: number }>('counters');
@@ -118,39 +115,6 @@ export async function nextId(db: Db, name: CounterName): Promise<number> {
       );
 
       if (!doc?.seq) throw new Error(`Could not allocate an id for ${name}.`);
-
-      // seq 1 means this counter had nothing before: make sure the collection
-      // agrees, so ids cannot collide with rows that already exist.
-      if (doc.seq === 1) {
-        const highest = await db
-          .collection(name)
-          .findOne({}, { sort: { id: -1 }, projection: { id: 1 } });
-        const highestId = typeof highest?.id === 'number' ? highest.id : 0;
-
-        if (highestId >= 1) {
-          const synced = await counters.findOneAndUpdate(
-            { _id: name },
-            { $max: { seq: highestId } },
-            { returnDocument: 'after' }
-          );
-
-          if (!synced?.seq || synced.seq < highestId) {
-            throw new Error(`Could not reconcile the id counter for ${name}.`);
-          }
-
-          // `$max` only moves the counter; the id this caller asked for is the
-          // next one after the highest stored document.
-          const incremented = await counters.findOneAndUpdate(
-            { _id: name },
-            { $inc: { seq: 1 } },
-            { returnDocument: 'after' }
-          );
-
-          if (!incremented?.seq) throw new Error(`Could not allocate an id for ${name}.`);
-          return incremented.seq;
-        }
-      }
-
       return doc.seq;
     } catch (error) {
       // Lost the race to create the counter document; the winner's document is

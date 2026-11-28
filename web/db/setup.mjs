@@ -307,6 +307,24 @@ async function main() {
     db.collection('appointments').createIndex({ phone: 1, created_at: -1 }),
   ]);
 
+  // Documents carry a numeric `id` allocated from `counters`. A unique index
+  // makes counter drift a loud write error instead of two documents sharing an
+  // id, where a staff edit would silently land on the wrong record.
+  const idCollections = [
+    'departments',
+    'doctors',
+    'service_categories',
+    'services',
+    'post_categories',
+    'testimonials',
+    'messages',
+    'appointments',
+  ];
+
+  for (const name of idCollections) {
+    await db.collection(name).createIndex({ id: 1 }, { unique: true });
+  }
+
   // Seed content is upserted by id so the script can run again without
   // touching rows staff added through the inbox.
   async function upsert(collection, docs) {

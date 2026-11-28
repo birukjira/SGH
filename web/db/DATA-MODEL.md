@@ -52,7 +52,9 @@ approved for publishing.
 - **`id` is a number, not an ObjectId.** Public URLs and staff forms use integers
   (`/inbox/doctors/12`), so documents carry `id` filled by `nextId(db, name)`, which
   increments `counters._id = name` with `$inc` and `upsert`. Never expose `_id`.
-- **Indexes are created by `setup.mjs`**, not by the app: unique `slug` on
+- **Indexes are created by `setup.mjs`**, not by the app: unique `id` on every
+  collection that carries one (so counter drift is a failed write, not a silently
+  overwritten record), unique `slug` on
   `departments`, `doctors`, `service_categories`, `services`, `post_categories` and
   `posts`; unique `(doctor_id, department_id)` on `doctor_departments`; unique
   `reference` on `appointments`; `(status, created_at)` on `messages`;
