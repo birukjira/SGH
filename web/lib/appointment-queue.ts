@@ -1,4 +1,4 @@
-import { getDb } from './d1';
+import { getDb, nowIso } from './mongo';
 import { TIME_SLOTS } from './appointment-slots';
 
 /**
@@ -42,7 +42,7 @@ export type QueueItem = {
   createdAt: string;
 };
 
-type QueueRow = {
+type QueueDoc = {
   id: number;
   reference: string;
   department: string;
@@ -52,7 +52,9 @@ type QueueRow = {
   preferred_time: string;
   first_name: string;
   last_name: string;
+  patient_name?: string;
   phone: string;
+  phone_digits?: string;
   email: string | null;
   reason: string | null;
   note: string | null;
@@ -81,15 +83,23 @@ export async function countByStatus(): Promise<Record<AppointmentStatus, number>
   };
 
   const db = await getDb();
-  const result = await db
-    .prepare('SELECT status, count(*) AS n FROM appointments GROUP BY status')
-    .all<{ status: AppointmentStatus; n: number }>();
+  const rows = await db
+    .collection<{ _id: AppointmentStatus; n: number }>('appointments')
+    .aggregate<{ _id: AppointmentStatus; n: number }>([
+      { $group: { _id: '$status', n: { $sum: 1 } } },
+    ])
+    .toArray();
 
-  for (const row of result.results ?? []) {
-    if (row.status in counts) counts[row.status] = row.n;
+  for (const row of rows) {
+    if (row._id in counts) counts[row._id] = row.n;
   }
 
   return counts;
+}
+
+/** The text as a case-insensitive literal, so `.` or `(` cannot act as a pattern. */
+function literal(value: string): RegExp {
+  return new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 }
 
 /** Rows for one filter, optionally narrowed by reference, phone or patient name. */
@@ -99,37 +109,31 @@ export async function listAppointments(
 ): Promise<QueueItem[]> {
   const db = await getDb();
 
-  const where: string[] = [];
-  const params: string[] = [];
-
-  if (filter !== 'all') {
-    where.push('status = ?');
-    params.push(filter);
-  }
+  const where: Record<string, unknown> = {};
+  if (filter !== 'all') where.status = filter;
 
   const term = search.trim().slice(0, 60);
   if (term) {
+    const pattern = literal(term);
     const digits = term.replace(/[^0-9]/g, '');
-    where.push(
-      `(reference LIKE ? OR phone LIKE ? OR (first_name || ' ' || last_name) LIKE ?
-        OR REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') LIKE ?)`
-    );
-    params.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${digits || term}%`);
+
+    where.$or = [
+      { reference: pattern },
+      { phone: pattern },
+      { patient_name: pattern },
+      { first_name: pattern },
+      { last_name: pattern },
+      ...(digits ? [{ phone_digits: literal(digits) }] : []),
+    ];
   }
 
-  const result = await db
-    .prepare(
-      `SELECT id, reference, department, doctor, visit_type, preferred_date, preferred_time,
-              first_name, last_name, phone, email, reason, note, status, handled_at, created_at
-         FROM appointments
-        ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
-        ORDER BY preferred_date ASC, id ASC
-        LIMIT 300`
-    )
-    .bind(...params)
-    .all<QueueRow>();
+  const rows = await db
+    .collection<QueueDoc>('appointments')
+    .find(where)
+    .limit(300)
+    .toArray();
 
-  return (result.results ?? [])
+  return rows
     .map((row) => ({
       id: row.id,
       reference: row.reference,
@@ -164,15 +168,11 @@ export async function setAppointmentStatus(
 
   const db = await getDb();
   await db
-    .prepare(
-      `UPDATE appointments
-          SET status = ?,
-              handled_at = CASE WHEN ? = 'new' THEN NULL
-                                ELSE strftime('%Y-%m-%dT%H:%M:%fZ', 'now') END
-        WHERE id = ?`
-    )
-    .bind(status, status, id)
-    .run();
+    .collection<QueueDoc>('appointments')
+    .updateOne(
+      { id },
+      { $set: { status, handled_at: status === 'new' ? null : nowIso() } }
+    );
 }
 
 export async function setAppointmentNote(id: number, note: string): Promise<void> {
@@ -181,7 +181,6 @@ export async function setAppointmentNote(id: number, note: string): Promise<void
   const trimmed = note.trim().slice(0, 500);
   const db = await getDb();
   await db
-    .prepare('UPDATE appointments SET note = ? WHERE id = ?')
-    .bind(trimmed || null, id)
-    .run();
+    .collection<QueueDoc>('appointments')
+    .updateOne({ id }, { $set: { note: trimmed || null } });
 }

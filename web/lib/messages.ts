@@ -1,4 +1,4 @@
-import { getDb } from './d1';
+import { getDb, nextId, nowIso } from './mongo';
 
 /** Contact form: validation and the single write path into `messages`. */
 
@@ -31,7 +31,7 @@ const BUSY =
 /** Per-address and site-wide caps, counted from the messages already stored. */
 const PER_EMAIL_PER_HOUR = 2;
 const PER_HOUR_TOTAL = 20;
-const HOUR_AGO = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour')";
+const HOUR_MS = 60 * 60 * 1000;
 
 function text(value: FormDataEntryValue | null, max: number): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -66,28 +66,32 @@ export async function submitContact(formData: FormData): Promise<ContactState> {
 
   try {
     const db = await getDb();
+    const messages = db.collection('messages');
+    const since = new Date(Date.now() - HOUR_MS).toISOString();
+    const inWindow = { created_at: { $gt: since } };
 
-    const usage = await db
-      .prepare(
-        `SELECT
-           (SELECT count(*) FROM messages WHERE email = ? AND created_at > ${HOUR_AGO}) AS from_email,
-           (SELECT count(*) FROM messages WHERE created_at > ${HOUR_AGO}) AS in_total`
-      )
-      .bind(email)
-      .all<{ from_email: number; in_total: number }>();
+    const [fromEmail, inTotal] = await Promise.all([
+      messages.countDocuments({ ...inWindow, email }),
+      messages.countDocuments(inWindow),
+    ]);
 
-    const recent = usage.results?.[0];
-    if (!recent || recent.from_email >= PER_EMAIL_PER_HOUR || recent.in_total >= PER_HOUR_TOTAL) {
+    if (fromEmail >= PER_EMAIL_PER_HOUR || inTotal >= PER_HOUR_TOTAL) {
       return { ok: false, message: BUSY, errors: {} };
     }
 
-    await db
-      .prepare(
-        `INSERT INTO messages (name, email, phone, subject, body, consent, source_page)
-         VALUES (?, ?, ?, ?, ?, 1, '/contact')`
-      )
-      .bind(name, email, phone || null, subject, body)
-      .run();
+    await messages.insertOne({
+      id: await nextId(db, 'messages'),
+      name,
+      email,
+      phone: phone || null,
+      subject,
+      body,
+      note: null,
+      consent: 1,
+      status: 'new',
+      source_page: '/contact',
+      created_at: nowIso(),
+    });
   } catch (error) {
     console.error('contact message insert failed', error);
     return { ok: false, message: FAILURE, errors: {} };

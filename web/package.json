@@ -8,11 +8,10 @@
     "start": "next start -p 3100",
     "typecheck": "tsc --noEmit",
     "assets": "node scripts/build-assets.mjs",
-    "db:local": "wrangler d1 execute DB --local --file=db/schema.sql && wrangler d1 execute DB --local --file=db/seed.sql",
-    "db:remote": "wrangler d1 execute DB --remote --file=db/schema.sql && wrangler d1 execute DB --remote --file=db/seed.sql"
+    "db:setup": "node db/setup.mjs"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "1.20.18",
+    "mongodb": "^7.9.1",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"
@@ -21,7 +20,6 @@
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "typescript": "^5.9.3",
-    "wrangler": "4.166.0"
+    "typescript": "^5.9.3"
   }
 }

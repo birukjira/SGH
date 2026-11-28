@@ -1,19 +1,19 @@
 # Architecture — how the front end talks to the back end
 
 There is no separate API server and no client-side fetch layer. The Next.js app in
-`web/` is the whole back end: pages render on the server, read from Cloudflare D1
-directly, and every write goes through a Server Action — posted by a `<form>` on the
-staff screens, or called by the appointment wizard.
+`web/` is the whole back end: pages render on the server, read from MongoDB directly,
+and every write goes through a Server Action — posted by a `<form>` on the staff
+screens, or called by the appointment wizard.
 
 ```
 browser
   │  GET /doctors
   ▼
-Next server (Node in `next dev`, Cloudflare Worker when deployed)
-  │  getDb() → env.DB   (D1 binding, see wrangler.jsonc)
+Next server (Node — `next dev` locally, `next start` when deployed)
+  │  getDb() → MONGODB_URI  (lib/mongo.ts)
   ▼
-D1 (SQLite)
-  │  rows
+MongoDB Atlas
+  │  documents
   ▼
 Server Component renders HTML ──► browser
 ```
@@ -24,7 +24,7 @@ Writes take the same route in reverse, through a Server Action:
 browser submits <form> ──► server action (POST, same origin)
                               ├─ requireStaff()           cookie → digest check
                               ├─ parse + validate         lib/content.ts
-                              ├─ INSERT/UPDATE  ─────────► D1
+                              ├─ insertOne / updateOne ──► MongoDB
                               ├─ revalidatePath(...)      public pages re-render
                               └─ redirect(?saved=1)
 ```
@@ -32,85 +32,100 @@ browser submits <form> ──► server action (POST, same origin)
 The appointment form is the only write that does not come from a form post: its
 wizard validates in the browser and then calls `submitAppointment(values)`. That is
 still a server action running on the server, and `requestAppointment()` re-runs every
-rule from `lib/appointment-slots.ts` before it inserts a row.
+rule from `lib/appointment-slots.ts` before it inserts a document.
 
 ## Why this shape
 
 - **No exposed API surface.** Every query runs on the server; the browser never sees
-  the database binding or a query string, and there is no `/api/*` to protect.
+  the connection string or a query, and there is no `/api/*` to protect.
 - **Public pages are read-only.** They call `lib/db.ts`, which filters
-  `is_active = 1`, and never prompt for credentials.
+  `is_active: 1`, and never prompt for credentials.
 - **Staff writes are ordinary form posts.** They work without JavaScript (Next
   progressively enhances server-action forms: the markup carries
   `action=""` plus a `$ACTION_ID` field, which posts to the same page and runs the
   action), and they cannot be replayed from another origin because the staff cookie
   is `SameSite=Lax`.
+- **Runs on Node, not on an edge runtime.** MongoDB is a long-lived TCP connection
+  with a connection pool, so the app is deployed as a normal Node process
+  (`npm run build` + `npm start`) rather than a Worker.
 
-## The database binding
+## The database connection
 
-`web/lib/d1.ts` is the only place that resolves the binding:
+`web/lib/mongo.ts` is the only place that opens a connection:
 
 ```ts
-const { env } = await getCloudflareContext({ async: true });
-const db = (env as { DB?: D1DatabaseLike }).DB;   // throws a clear error if missing
+const uri = envValue('MONGODB_URI');          // throws a clear error if missing
+const client = new MongoClient(uri, { appName: 'summit-general-hospital', serverSelectionTimeoutMS: 8000 });
+clientPromise ??= client.connect();
+return (await clientPromise).db(databaseName(uri));
 ```
 
-- **`next dev`** — `initOpenNextCloudflareForDev({ configPath: './wrangler.jsonc' })`
-  in `next.config.ts` reads the D1 binding from Wrangler's local Miniflare state
-  (`web/.wrangler/`). No Cloudflare account is needed to develop; the data lives in
-  a local SQLite file.
-- **Deployed** — the Worker reads the same `DB` binding from the `d1_databases` entry
-  in `wrangler.jsonc`.
-
-Because both paths read the same binding name, application code never branches on
-environment.
+- **One client per process.** The driver pools connections itself; a client per
+  request would exhaust the cluster's connection limit.
+- **A failed handshake is not cached.** If `connect()` rejects, the promise is
+  cleared so the next request retries instead of failing forever.
+- **Database name.** Taken from the path in the connection string; when the string has
+  no path (`…mongodb.net/?retryWrites=true`), it falls back to
+  `summit_general_hospital`.
+- **Where the value comes from.** `lib/env.ts` reads `web/.dev.vars` once in
+  development and never overrides a variable already present in the environment, so
+  the server's own configuration always wins. `.dev.vars` is git-ignored.
 
 ## Data access modules
 
 | Module | Responsibility | Used by |
 | --- | --- | --- |
-| `lib/d1.ts` | Resolve the `DB` binding | everything |
+| `lib/mongo.ts` | Pooled client, `getDb()`, `nextId()`, `nowIso()` | everything |
+| `lib/env.ts` | Read `.dev.vars` without overriding the real environment | `mongo.ts`, `inbox.ts` |
 | `lib/db.ts` | Public reads: doctors, department chips, services, booking departments | public pages |
 | `lib/content.ts` | Staff reads plus `parse*Form` validation and `save*` writes for doctors and services | `/inbox/doctors`, `/inbox/services` |
-| `lib/appointment-slots.ts` | Booking slots, visit types and the validation rules shared by browser and server (imports no D1 code) | `/appointment` |
+| `lib/appointment-slots.ts` | Booking slots, visit types and the validation rules shared by browser and server (imports no database code) | `/appointment` |
 | `lib/appointments.ts` | Re-validate and insert appointment requests | `/appointment` |
 | `lib/appointment-queue.ts` | Staff queue queries, status changes and counts | `/inbox/appointments`, staff nav badges |
 | `lib/messages.ts` | Validate and insert contact messages | `/contact` |
 | `lib/inbox.ts` | Staff gate (`isStaff`, `requireStaff`), sign-in/out with throttling, messages list, status and notes | every `/inbox` route |
 | `lib/format.ts` | Phone/date helpers used by staff screens | staff screens |
 
-Writes are plain SQL through prepared statements with bound parameters. No ORM, no
-migrations framework: `web/db/schema.sql` is idempotent (`CREATE TABLE IF NOT
-EXISTS`) and `web/db/seed.sql` seeds the launch content.
+Writes are plain driver calls (`find`, `insertOne`, `updateOne`, `countDocuments`,
+`aggregate`) with numeric ids and no ORM. `nextId(db, name)` replaces SQL
+autoincrement: it increments a document in `counters` with `$inc` and `upsert`, so
+`/inbox/doctors/12` and the appointment reference stay stable integers instead of
+exposing ObjectIds.
+
+There is no migration framework. `web/db/setup.mjs` (`npm run db:setup`) creates the
+collections, builds the indexes and upserts the launch content; it can be run again
+at any time without disturbing requests or staff edits.
 
 ## Schema, in one screen
 
-| Table | Purpose | Notable rules |
+| Collection | Purpose | Notable rules |
 | --- | --- | --- |
-| `departments` | Clinical units; drive directory chips and booking departments | one row carries three labels (filter, appointment, card) |
+| `departments` | Clinical units; drive directory chips and booking departments | one document carries three labels (filter, appointment, card) |
 | `doctors` | Consultants on `/doctors` | `slug` is permanent; `is_active` hides without deleting |
-| `doctor_departments` | Doctor ↔ department membership | partial unique index allows exactly one `is_primary = 1` per doctor |
+| `doctor_departments` | Doctor ↔ department membership | unique `(doctor_id, department_id)`; the app keeps exactly one `is_primary: 1` per doctor |
 | `service_categories` / `services` | The `/services` cards and booking options | `booking_department` is text, because services outnumber consultant departments |
-| `posts` / `post_categories` | Blog, ready but not yet routed | `status` draft/scheduled/published/archived with CHECKs |
-| `testimonials` / `review_snapshots` | Curated patient quotes and cached Google rating | never published without `is_published = 1` |
+| `posts` / `post_categories` | Blog, ready but not yet routed | `status` draft/scheduled/published/archived |
+| `testimonials` / `review_snapshots` | Curated patient quotes and cached Google rating | never published without `is_published: 1` |
 | `messages` | `/contact` submissions | `status` new/read/archived; `note` is staff-only |
 | `appointments` | `/appointment` requests | `reference` unique; `status` new/confirmed/declined/archived |
-| `login_attempts` | Failed staff sign-ins | keyed by a digest of IP + password, pruned on next attempt |
+| `login_attempts` | Failed staff sign-ins | keyed by a digest of IP + password, pruned on the next attempt |
+| `counters` | Next numeric id per collection | never exposed to a page |
 
-Per the conventions in `web/db/schema.sql`: integer ids, public URLs use `slug`,
-timestamps are ISO-8601 UTC strings written by the app, and soft state
-(`is_active`, `is_published`, `status`) is preferred over deleting rows.
+Conventions: numeric `id` per document, public URLs use `slug`, timestamps are
+ISO-8601 UTC strings written by the app, and soft state (`is_active`, `is_published`,
+`status`) is preferred over deleting documents. Full detail:
+[`web/db/DATA-MODEL.md`](../web/db/DATA-MODEL.md).
 
 ## Staff authentication
 
 `lib/inbox.ts` implements a single shared front-desk password, deliberately not a
 user account system:
 
-1. `INBOX_PASSWORD` comes from `.dev.vars` locally and from the hosting environment
-   in production. If it is unset, `isStaff()` is false and the inbox is closed.
+1. `INBOX_PASSWORD` comes from `.dev.vars` locally and from the server environment in
+   production. If it is unset, `isStaff()` is false and the inbox is closed.
 2. A correct password sets `sgh_inbox` to the SHA-256 of `summit-inbox:<password>` —
-   httpOnly, `SameSite=Lax`, `path=/inbox`, 12-hour lifetime. The password itself is
-   never stored in the browser.
+   httpOnly, `SameSite=Lax`, `secure` in production, `path=/inbox`, 12-hour lifetime.
+   The password itself is never stored in the browser.
 3. Every staff page and every staff action calls `requireStaff()`, which redirects to
    `/inbox/login` when the cookie is absent or wrong. Redirects are not a security
    boundary on their own, so the check is repeated inside each action — a POST to a
@@ -139,8 +154,8 @@ validation error redirect.
 
 ## Revalidation
 
-D1 reads happen per request, but a write also refreshes routes that render
-consultant- or service-derived content, so a hidden doctor disappears immediately:
+Reads happen per request, but a write also refreshes routes that render consultant- or
+service-derived content, so a hidden doctor disappears immediately:
 
 ```ts
 revalidatePath('/inbox/doctors');  // the staff list
@@ -172,4 +187,4 @@ There is exactly one stylesheet and one icon set for both deliverables. Edit CSS
   submit actions in `lib/appointments.ts` and `lib/messages.ts` are the place to add
   an email or Telegram send.
 - **Per-user staff accounts** — replacing the shared password means adding a staff
-  table and an audit log; `requireStaff()` is the single choke point to change.
+  collection and an audit log; `requireStaff()` is the single choke point to change.

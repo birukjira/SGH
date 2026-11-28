@@ -1,4 +1,4 @@
-import { getDb } from './d1';
+import { getDb, nextId, nowIso } from './mongo';
 
 /**
  * Staff-side reads and writes for the content behind the public directory:
@@ -12,8 +12,6 @@ import { getDb } from './d1';
  * `setDoctorActive(id, false)`, which drops them from the public directory
  * while keeping their record, photo and any history intact.
  */
-
-const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
 
 export type DepartmentOption = {
   id: number;
@@ -36,19 +34,21 @@ type DoctorRow = {
   photo_path: string | null;
   photo_alt: string | null;
   clinic_note: string;
-  languages: string;
+  languages: string[] | string;
   accepts_appointments: number;
   is_active: number;
   sort_order: number;
   updated_at: string;
 };
 
-type MembershipRow = {
+type MembershipDoc = {
   doctor_id: number;
   department_id: number;
-  name: string;
   is_primary: number;
 };
+
+/** A membership with its department name, as the staff screens show it. */
+type MembershipRow = MembershipDoc & { name: string };
 
 export type DoctorRecord = {
   id: number;
@@ -77,9 +77,7 @@ type ServiceRow = {
   icon: string | null;
   tag_label: string | null;
   category_id: number;
-  category_name: string;
   department_id: number | null;
-  department_name: string | null;
   booking_department: string | null;
   cta_label: string;
   cta_type: ServiceCtaType;
@@ -116,13 +114,18 @@ export type ServiceRecord = {
 
 /* Helpers ---------------------------------------------------------------- */
 
-function parseLanguages(value: string): string[] {
-  try {
-    const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
-  } catch {
-    return [];
+function parseLanguages(value: unknown): string[] {
+  let parsed: unknown = value;
+
+  if (typeof value === 'string') {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return [];
+    }
   }
+
+  return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
 }
 
 /** 'Dr. Gosa Abebe Shifera' -> 'dr-gosa-abebe-shifera'. */
@@ -145,14 +148,12 @@ function slugify(value: string): string {
 async function uniqueSlug(table: 'doctors' | 'services', name: string): Promise<string> {
   const db = await getDb();
   const base = slugify(name);
+  const collection = db.collection(table);
 
   for (let suffix = 1; suffix < 100; suffix += 1) {
     const candidate = suffix === 1 ? base : `${base}-${suffix}`;
-    const result = await db
-      .prepare(`SELECT id FROM ${table} WHERE slug = ?`)
-      .bind(candidate)
-      .all<{ id: number }>();
-    if (!(result.results ?? []).length) return candidate;
+    const existing = await collection.findOne({ slug: candidate }, { projection: { _id: 1 } });
+    if (!existing) return candidate;
   }
 
   return `${base}-${Date.now()}`;
@@ -167,11 +168,13 @@ function optional(value: FormDataEntryValue | null, max: number): string | null 
 
 export async function listDepartments(): Promise<DepartmentOption[]> {
   const db = await getDb();
-  const result = await db
-    .prepare('SELECT id, name, is_active FROM departments ORDER BY sort_order, name')
-    .all<{ id: number; name: string; is_active: number }>();
+  const rows = await db
+    .collection<{ id: number; name: string; is_active: number }>('departments')
+    .find({})
+    .sort({ sort_order: 1, name: 1 })
+    .toArray();
 
-  return (result.results ?? []).map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     name: row.name,
     isActive: row.is_active === 1,
@@ -205,56 +208,59 @@ function mapDoctor(row: DoctorRow, memberships: MembershipRow[]): DoctorRecord {
 export async function listDoctorsForStaff(): Promise<DoctorRecord[]> {
   const db = await getDb();
 
-  const [doctorResult, membershipResult] = await Promise.all([
+  const [doctors, memberships, departments] = await Promise.all([
     db
-      .prepare(
-        `SELECT id, slug, name, role, focus, bio_md, photo_path, photo_alt, clinic_note,
-                languages, accepts_appointments, is_active, sort_order, updated_at
-           FROM doctors
-          ORDER BY is_active DESC, sort_order, name`
-      )
-      .all<DoctorRow>(),
+      .collection<DoctorRow>('doctors')
+      .find({})
+      .sort({ is_active: -1, sort_order: 1, name: 1 })
+      .toArray(),
+    db.collection<MembershipDoc>('doctor_departments').find({}).toArray(),
     db
-      .prepare(
-        `SELECT dd.doctor_id, dd.department_id, dep.name, dd.is_primary
-           FROM doctor_departments dd
-           JOIN departments dep ON dep.id = dd.department_id
-          ORDER BY dd.is_primary DESC, dep.sort_order`
-      )
-      .all<MembershipRow>(),
+      .collection<{ id: number; name: string; sort_order: number }>('departments')
+      .find({})
+      .toArray(),
   ]);
 
-  const memberships = membershipResult.results ?? [];
+  const departmentById = new Map(departments.map((row) => [row.id, row]));
 
-  return (doctorResult.results ?? []).map((row) => mapDoctor(row, memberships));
+  const named: MembershipRow[] = memberships.map((row) => ({
+    ...row,
+    name: departmentById.get(row.department_id)?.name ?? 'Unknown department',
+  }));
+
+  named.sort((a, b) => {
+    const aDepartment = departmentById.get(a.department_id);
+    const bDepartment = departmentById.get(b.department_id);
+    return (
+      b.is_primary - a.is_primary ||
+      (aDepartment?.sort_order ?? 0) - (bDepartment?.sort_order ?? 0)
+    );
+  });
+
+  return doctors.map((row) => mapDoctor(row, named));
 }
 
 export async function getDoctorForStaff(id: number): Promise<DoctorRecord | null> {
   const db = await getDb();
 
-  const [doctorResult, membershipResult] = await Promise.all([
+  const [row, membershipRows, departments] = await Promise.all([
+    db.collection<DoctorRow>('doctors').findOne({ id }),
+    db.collection<MembershipDoc>('doctor_departments').find({ doctor_id: id }).toArray(),
     db
-      .prepare(
-        `SELECT id, slug, name, role, focus, bio_md, photo_path, photo_alt, clinic_note,
-                languages, accepts_appointments, is_active, sort_order, updated_at
-           FROM doctors
-          WHERE id = ?`
-      )
-      .bind(id)
-      .all<DoctorRow>(),
-    db
-      .prepare(
-        `SELECT dd.doctor_id, dd.department_id, dep.name, dd.is_primary
-           FROM doctor_departments dd
-           JOIN departments dep ON dep.id = dd.department_id
-          WHERE dd.doctor_id = ?`
-      )
-      .bind(id)
-      .all<MembershipRow>(),
+      .collection<{ id: number; name: string }>('departments')
+      .find({}, { projection: { id: 1, name: 1 } })
+      .toArray(),
   ]);
 
-  const row = (doctorResult.results ?? [])[0];
-  return row ? mapDoctor(row, membershipResult.results ?? []) : null;
+  if (!row) return null;
+
+  const departmentById = new Map(departments.map((department) => [department.id, department]));
+  const memberships: MembershipRow[] = membershipRows.map((membership) => ({
+    ...membership,
+    name: departmentById.get(membership.department_id)?.name ?? 'Unknown department',
+  }));
+
+  return mapDoctor(row, memberships);
 }
 
 export type DoctorInput = {
@@ -343,74 +349,51 @@ export function parseDoctorForm(formData: FormData): Parsed<DoctorInput> {
 /** Creates or updates a consultant, then rewrites their department links. */
 export async function saveDoctor(input: DoctorInput): Promise<number> {
   const db = await getDb();
-  const languages = JSON.stringify(input.languages);
-  const accepts = input.acceptsAppointments ? 1 : 0;
+
+  const fields = {
+    name: input.name,
+    role: input.role,
+    focus: input.focus,
+    bio_md: input.bioMd,
+    photo_path: input.photoPath,
+    photo_alt: input.photoAlt,
+    clinic_note: input.clinicNote,
+    languages: input.languages,
+    accepts_appointments: input.acceptsAppointments ? 1 : 0,
+    sort_order: input.sortOrder,
+    updated_at: nowIso(),
+  };
 
   let id = input.id;
 
   if (id) {
-    await db
-      .prepare(
-        `UPDATE doctors
-            SET name = ?, role = ?, focus = ?, bio_md = ?, photo_path = ?, photo_alt = ?,
-                clinic_note = ?, languages = ?, accepts_appointments = ?, sort_order = ?,
-                updated_at = ${NOW}
-          WHERE id = ?`
-      )
-      .bind(
-        input.name,
-        input.role,
-        input.focus,
-        input.bioMd,
-        input.photoPath,
-        input.photoAlt,
-        input.clinicNote,
-        languages,
-        accepts,
-        input.sortOrder,
-        id
-      )
-      .run();
+    await db.collection('doctors').updateOne({ id }, { $set: fields });
   } else {
     // A new consultant starts visible; hiding is a deliberate action on the list.
     const slug = await uniqueSlug('doctors', input.name);
-    const result = await db
-      .prepare(
-        `INSERT INTO doctors
-           (slug, name, role, focus, bio_md, photo_path, photo_alt, clinic_note, languages,
-            accepts_appointments, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         RETURNING id`
-      )
-      .bind(
-        slug,
-        input.name,
-        input.role,
-        input.focus,
-        input.bioMd,
-        input.photoPath,
-        input.photoAlt,
-        input.clinicNote,
-        languages,
-        accepts,
-        input.sortOrder
-      )
-      .all<{ id: number }>();
+    id = await nextId(db, 'doctors');
 
-    id = result.results?.[0]?.id ?? 0;
+    await db.collection('doctors').insertOne({
+      ...fields,
+      id,
+      slug,
+      is_active: 1,
+      created_at: nowIso(),
+    });
   }
 
   if (!id) throw new Error('The consultant could not be saved.');
 
-  await db.prepare('DELETE FROM doctor_departments WHERE doctor_id = ?').bind(id).run();
+  await db.collection('doctor_departments').deleteMany({ doctor_id: id });
 
-  for (const departmentId of input.departmentIds) {
-    await db
-      .prepare(
-        'INSERT INTO doctor_departments (doctor_id, department_id, is_primary) VALUES (?, ?, ?)'
-      )
-      .bind(id, departmentId, departmentId === input.primaryDepartmentId ? 1 : 0)
-      .run();
+  if (input.departmentIds.length > 0) {
+    await db.collection('doctor_departments').insertMany(
+      input.departmentIds.map((departmentId) => ({
+        doctor_id: id,
+        department_id: departmentId,
+        is_primary: departmentId === input.primaryDepartmentId ? 1 : 0,
+      }))
+    );
   }
 
   return id;
@@ -422,23 +405,28 @@ export async function setDoctorActive(id: number, active: boolean): Promise<void
 
   const db = await getDb();
   await db
-    .prepare(`UPDATE doctors SET is_active = ?, updated_at = ${NOW} WHERE id = ?`)
-    .bind(active ? 1 : 0, id)
-    .run();
+    .collection('doctors')
+    .updateOne({ id }, { $set: { is_active: active ? 1 : 0, updated_at: nowIso() } });
 }
 
 /* Services --------------------------------------------------------------- */
 
 export async function listServiceCategoryOptions(): Promise<ServiceCategoryOption[]> {
   const db = await getDb();
-  const result = await db
-    .prepare('SELECT id, name FROM service_categories ORDER BY sort_order, name')
-    .all<{ id: number; name: string }>();
+  const rows = await db
+    .collection<{ id: number; name: string }>('service_categories')
+    .find({})
+    .sort({ sort_order: 1, name: 1 })
+    .toArray();
 
-  return (result.results ?? []).map((row) => ({ id: row.id, name: row.name }));
+  return rows.map((row) => ({ id: row.id, name: row.name }));
 }
 
-function mapService(row: ServiceRow): ServiceRecord {
+function mapService(
+  row: ServiceRow,
+  categoryName: string,
+  departmentName: string | null
+): ServiceRecord {
   return {
     id: row.id,
     slug: row.slug,
@@ -448,9 +436,9 @@ function mapService(row: ServiceRow): ServiceRecord {
     icon: row.icon,
     tag: row.tag_label,
     categoryId: row.category_id,
-    categoryName: row.category_name,
+    categoryName,
     departmentId: row.department_id,
-    departmentName: row.department_name,
+    departmentName,
     bookingDepartment: row.booking_department,
     ctaLabel: row.cta_label,
     ctaType: row.cta_type,
@@ -461,29 +449,67 @@ function mapService(row: ServiceRow): ServiceRecord {
   };
 }
 
-const SERVICE_QUERY = `SELECT s.id, s.slug, s.name, s.summary, s.body_md, s.icon, s.tag_label,
-                              s.category_id, cat.name AS category_name, s.department_id,
-                              dep.name AS department_name, s.booking_department,
-                              s.cta_label, s.cta_type, s.is_emergency, s.is_active,
-                              s.sort_order, s.updated_at
-                         FROM services s
-                         JOIN service_categories cat ON cat.id = s.category_id
-                         LEFT JOIN departments dep ON dep.id = s.department_id`;
+async function categoryAndDepartmentNames(rows: ServiceRow[]): Promise<{
+  categories: Map<number, { name: string; sort_order: number }>;
+  departments: Map<number, string>;
+}> {
+  const db = await getDb();
+  const departmentIds = rows
+    .map((row) => row.department_id)
+    .filter((id): id is number => typeof id === 'number');
+
+  const [categories, departments] = await Promise.all([
+    db
+      .collection<{ id: number; name: string; sort_order: number }>('service_categories')
+      .find({}, { projection: { id: 1, name: 1, sort_order: 1 } })
+      .toArray(),
+    db
+      .collection<{ id: number; name: string }>('departments')
+      .find({ id: { $in: departmentIds } }, { projection: { id: 1, name: 1 } })
+      .toArray(),
+  ]);
+
+  return {
+    categories: new Map(categories.map((row) => [row.id, { name: row.name, sort_order: row.sort_order }])),
+    departments: new Map(departments.map((row) => [row.id, row.name])),
+  };
+}
 
 export async function listServicesForStaff(): Promise<ServiceRecord[]> {
   const db = await getDb();
-  const result = await db
-    .prepare(`${SERVICE_QUERY} ORDER BY cat.sort_order, s.sort_order, s.name`)
-    .all<ServiceRow>();
+  const rows = await db.collection<ServiceRow>('services').find({}).toArray();
+  const { categories, departments } = await categoryAndDepartmentNames(rows);
 
-  return (result.results ?? []).map(mapService);
+  return rows
+    .map((row) => ({
+      record: mapService(
+        row,
+        categories.get(row.category_id)?.name ?? 'Uncategorised',
+        row.department_id ? departments.get(row.department_id) ?? null : null
+      ),
+      categoryOrder: categories.get(row.category_id)?.sort_order ?? 0,
+    }))
+    .sort(
+      (a, b) =>
+        a.categoryOrder - b.categoryOrder ||
+        a.record.sortOrder - b.record.sortOrder ||
+        a.record.name.localeCompare(b.record.name)
+    )
+    .map((entry) => entry.record);
 }
 
 export async function getServiceForStaff(id: number): Promise<ServiceRecord | null> {
   const db = await getDb();
-  const result = await db.prepare(`${SERVICE_QUERY} WHERE s.id = ?`).bind(id).all<ServiceRow>();
-  const row = (result.results ?? [])[0];
-  return row ? mapService(row) : null;
+  const row = await db.collection<ServiceRow>('services').findOne({ id });
+  if (!row) return null;
+
+  const { categories, departments } = await categoryAndDepartmentNames([row]);
+
+  return mapService(
+    row,
+    categories.get(row.category_id)?.name ?? 'Uncategorised',
+    row.department_id ? departments.get(row.department_id) ?? null : null
+  );
 }
 
 export type ServiceInput = {
@@ -554,61 +580,37 @@ export function parseServiceForm(formData: FormData): Parsed<ServiceInput> {
 export async function saveService(input: ServiceInput): Promise<number> {
   const db = await getDb();
 
+  const fields = {
+    name: input.name,
+    summary: input.summary,
+    body_md: input.bodyMd,
+    icon: input.icon,
+    tag_label: input.tag,
+    category_id: input.categoryId,
+    department_id: input.departmentId,
+    booking_department: input.bookingDepartment,
+    cta_label: input.ctaLabel,
+    cta_type: input.ctaType,
+    is_emergency: input.isEmergency ? 1 : 0,
+    sort_order: input.sortOrder,
+    updated_at: nowIso(),
+  };
+
   let id = input.id;
 
   if (id) {
-    await db
-      .prepare(
-        `UPDATE services
-            SET name = ?, summary = ?, body_md = ?, icon = ?, tag_label = ?, category_id = ?,
-                department_id = ?, booking_department = ?, cta_label = ?, cta_type = ?,
-                is_emergency = ?, sort_order = ?, updated_at = ${NOW}
-          WHERE id = ?`
-      )
-      .bind(
-        input.name,
-        input.summary,
-        input.bodyMd,
-        input.icon,
-        input.tag,
-        input.categoryId,
-        input.departmentId,
-        input.bookingDepartment,
-        input.ctaLabel,
-        input.ctaType,
-        input.isEmergency ? 1 : 0,
-        input.sortOrder,
-        id
-      )
-      .run();
+    await db.collection('services').updateOne({ id }, { $set: fields });
   } else {
     const slug = await uniqueSlug('services', input.name);
-    const result = await db
-      .prepare(
-        `INSERT INTO services
-           (slug, name, summary, body_md, icon, tag_label, category_id, department_id,
-            booking_department, cta_label, cta_type, is_emergency, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         RETURNING id`
-      )
-      .bind(
-        slug,
-        input.name,
-        input.summary,
-        input.bodyMd,
-        input.icon,
-        input.tag,
-        input.categoryId,
-        input.departmentId,
-        input.bookingDepartment,
-        input.ctaLabel,
-        input.ctaType,
-        input.isEmergency ? 1 : 0,
-        input.sortOrder
-      )
-      .all<{ id: number }>();
+    id = await nextId(db, 'services');
 
-    id = result.results?.[0]?.id ?? 0;
+    await db.collection('services').insertOne({
+      ...fields,
+      id,
+      slug,
+      is_active: 1,
+      created_at: nowIso(),
+    });
   }
 
   if (!id) throw new Error('The service could not be saved.');
@@ -621,7 +623,6 @@ export async function setServiceActive(id: number, active: boolean): Promise<voi
 
   const db = await getDb();
   await db
-    .prepare(`UPDATE services SET is_active = ?, updated_at = ${NOW} WHERE id = ?`)
-    .bind(active ? 1 : 0, id)
-    .run();
+    .collection('services')
+    .updateOne({ id }, { $set: { is_active: active ? 1 : 0, updated_at: nowIso() } });
 }

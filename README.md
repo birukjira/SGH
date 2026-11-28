@@ -9,7 +9,7 @@ The repository contains two deliverables that share one design:
 | Deliverable | Where | Stack | What it can do |
 | --- | --- | --- | --- |
 | **Static site** | `src/`, `public/` → `dist/` | plain HTML, CSS, JS, one PHP form handler | Every public page; appointment and contact forms are emailed by `send.php`. No database. |
-| **Next.js app** | `web/` | Next.js 16 App Router, React 19, TypeScript, Cloudflare D1 | The same public pages, driven by a database, plus the staff inbox at `/inbox`. |
+| **Next.js app** | `web/` | Next.js 16 App Router, React 19, TypeScript, MongoDB Atlas | The same public pages, driven by a database, plus the staff inbox at `/inbox`. |
 
 The static site is what goes on ordinary cPanel hosting today. The Next app is the
 version with a back end: requests are stored, not just emailed, and staff can edit
@@ -28,15 +28,21 @@ Next app before every `dev` and `build`.
 
 ```bash
 cd web
-cp .dev.vars.example .dev.vars     # set INBOX_PASSWORD
+cp .dev.vars.example .dev.vars     # set MONGODB_URI and INBOX_PASSWORD
 npm install
-npm run db:local                   # create and seed the local D1 database
+npm run db:setup                   # create collections, indexes and seed content
 npm run dev                        # http://localhost:3100
 ```
 
 Open <http://localhost:3100> for the public site and <http://localhost:3100/inbox>
-for the staff area (password from `web/.dev.vars`). No Cloudflare account is needed:
-the database is a local SQLite file managed by Wrangler.
+for the staff area (password from `web/.dev.vars`).
+
+The database is a MongoDB Atlas cluster, not a file on this machine: create a free
+cluster, add a database user, allow your IP under **Network Access**, and paste the
+driver connection string (with the password in it) into `MONGODB_URI`. The app uses
+the `summit_general_hospital` database when the connection string has no path of its
+own. `npm run db:setup` is safe to re-run — it upserts the launch content and never
+touches requests or records staff created.
 
 ### The static site
 
@@ -53,17 +59,17 @@ request to the address configured at the top of the file.
 ## How the front end and the back end connect
 
 There is no separate API — the Next.js server *is* the back end. Server Components
-read D1 directly, and every write goes through a Server Action.
+read MongoDB directly, and every write goes through a Server Action.
 
 ```
-browser ──GET /doctors──► Next server ──getDb() → env.DB──► D1 (SQLite)
-                              │                                │
-                              └──── server-rendered HTML ◄──────┘
+browser ──GET /doctors──► Next server ──getDb() → MONGODB_URI──► MongoDB Atlas
+                              │                                     │
+                              └────── server-rendered HTML ◄────────┘
 
 browser ──POST (form or action call)──► Server Action
                             ├─ requireStaff()        staff cookie → digest check
                             ├─ parse + validate      lib/content.ts, lib/*.ts
-                            ├─ INSERT / UPDATE ────► D1
+                            ├─ insertOne / updateOne ──► MongoDB
                             ├─ revalidatePath(…)     public pages refresh
                             └─ redirect(?saved=1)
 ```
@@ -78,14 +84,15 @@ Consequences worth knowing:
 
 - **Nothing is exposed to the browser.** No `/api` routes, no database credentials,
   no client-side fetch layer. Public pages only read; staff writes are gated.
-- **Public pages filter on `is_active = 1`**, so hiding a doctor in `/inbox/doctors`
+- **Public pages filter on `is_active: 1`**, so hiding a doctor in `/inbox/doctors`
   removes them from `/doctors`, the booking form and the home page on the next load.
 - **Staff forms work without JavaScript.** Their markup carries the action ID that
   posts to the same page, so they save even when a click lands before hydration. The
   contact form is a progressively enhanced server-action post too. The appointment
   wizard does need JavaScript; the server checks the same rules either way.
-- **The database binding is resolved in one place** — `web/lib/d1.ts` — from
-  `wrangler.jsonc` in development and from the Worker environment when deployed.
+- **The connection is opened in one place** — `web/lib/mongo.ts` — from
+  `MONGODB_URI` in `.dev.vars` locally and from the server environment when deployed.
+  One pooled client per process; pages never construct their own.
 
 Full detail: [`docs/architecture.md`](docs/architecture.md).
 
@@ -97,8 +104,8 @@ Full detail: [`docs/architecture.md`](docs/architecture.md).
 | --- | --- |
 | `/` | Home: hero, quick access, departments, care pathways, doctors, patient stories, map |
 | `/about` | Story, mission, facility gallery, quality commitments |
-| `/services` | Service cards from D1, filterable by category |
-| `/doctors` | Consultant directory from D1, with specialty filters |
+| `/services` | Service cards from MongoDB, filterable by category |
+| `/doctors` | Consultant directory from MongoDB, with specialty filters |
 | `/appointment` | Three-step appointment request, written to `appointments` |
 | `/visit` | What to bring, admissions, visiting hours, rights, insurance, FAQs |
 | `/contact` | Contact details plus a message form written to `messages` |
@@ -117,7 +124,7 @@ so old links and search results keep working.
 | `/inbox/doctors` | Consultant list, hide/restore, add and edit |
 | `/inbox/services` | Service list by category, hide/restore, add and edit |
 
-Rules the staff screens enforce: **rows are hidden, never deleted**; a doctor's URL
+Rules the staff screens enforce: **records are hidden, never deleted**; a doctor's URL
 slug is generated once and never changes; a doctor's primary department must be one
 of their ticked departments (refused by the server, not just the picker); editing a
 record cannot change its visibility. Operating guide: [`docs/staff-guide.md`](docs/staff-guide.md).
@@ -126,27 +133,31 @@ record cannot change its visibility. Operating guide: [`docs/staff-guide.md`](do
 
 ## Data
 
-One Cloudflare D1 (SQLite) database, schema in [`web/db/schema.sql`](web/db/schema.sql),
-launch content in `web/db/seed.sql`.
+One MongoDB database (`summit_general_hospital` by default), created and seeded by
+[`web/db/setup.mjs`](web/db/setup.mjs) (`npm run db:setup`). The document shapes are
+described in [`web/db/DATA-MODEL.md`](web/db/DATA-MODEL.md).
 
-| Table | Holds |
+| Collection | Holds |
 | --- | --- |
 | `departments` | Clinical units used by filters and the booking form |
 | `doctors`, `doctor_departments` | Consultants and their memberships (one primary per doctor) |
 | `service_categories`, `services` | The `/services` cards and their booking departments |
 | `messages` | Contact form submissions and staff status/notes |
 | `appointments` | Appointment requests, reference and status |
-| `posts`, `post_categories` | Blog tables, ready but not yet routed |
+| `posts`, `post_categories` | Blog collections, ready but not yet routed |
 | `testimonials`, `review_snapshots` | Curated quotes and a cached Google rating |
 | `login_attempts` | Throttling for the staff password |
+| `counters` | The next numeric id for each collection |
 
-Conventions: integer ids, public URLs use stable slugs, timestamps are ISO-8601 UTC,
-soft state (`is_active`, `is_published`, `status`) instead of deletes, JSON columns
-checked with `json_valid()`.
+Conventions: documents carry a numeric `id` (filled from `counters`, so URLs and staff
+forms stay `/inbox/doctors/12`), public URLs use stable slugs, timestamps are ISO-8601
+UTC strings, and soft state (`is_active`, `is_published`, `status`) replaces deletes.
+There is no ORM and no migration framework: `db/setup.mjs` creates the indexes and is
+idempotent.
 
 ```bash
 cd web
-npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM doctors"
+npx mongosh "$MONGODB_URI" --eval 'db.doctors.find({}, { name: 1, is_active: 1 }).toArray()'
 ```
 
 ---
@@ -169,14 +180,14 @@ npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM do
 ├── web/                      the Next.js app
 │   ├── app/                  routes: public pages + /inbox
 │   ├── components/           shared UI (header, footer, icons, staff nav)
-│   ├── lib/                  D1 access, queries, validation, staff auth
-│   ├── db/                   schema.sql, seed.sql
+│   ├── lib/                  MongoDB access, queries, validation, staff auth
+│   ├── db/                   setup.mjs (collections, indexes, seed), DATA-MODEL.md
 │   ├── scripts/              build-assets.mjs
 │   ├── tests/                browser-test helpers
 │   ├── public/               generated assets (CSS, images, sprite)
-│   ├── wrangler.jsonc        D1 binding and Worker config
-│   └── .dev.vars.example     local secrets template
-├── .github/workflows/        CI: install `web/` and typecheck on every push
+│   ├── .dev.vars.example     local secrets template (MongoDB URI, inbox password)
+│   └── next.config.ts        legacy redirects, image and dev-host settings
+├── .github/workflows/        CI: install `web/`, typecheck and build on every push
 ├── docs/                     architecture, staff guide, deployment, static site
 └── README.md
 ```
@@ -191,22 +202,22 @@ npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM do
 | Recompile CSS/images for the app | `npm run assets` | `web/` |
 | Typecheck the app (also runs in CI on every push) | `npm run typecheck` | `web/` |
 | Production build | `npm run build` | `web/` |
-| Reset the local database | `npm run db:local` | `web/` |
+| Create/seed the database (safe to re-run) | `npm run db:setup` | `web/` |
 
 Guidelines:
 
 - **Edit CSS in `src/css/`**, then run `npm run assets` in `web/`. Files under
   `web/public/assets/css/` are generated and git-ignored.
 - **Typecheck before handing over:** `npm run typecheck` must pass.
-  `.github/workflows/ci.yml` runs the same check on every push; there is no other
-  automated check in the project.
+  `.github/workflows/ci.yml` runs the typecheck and the production build on every
+  push; there is no other automated check in the project.
 - **No invented clinical facts.** Clinic days, languages, qualifications, hours and
   insurance text must come from the hospital. Where they are unknown, the site says
   so ("Clinic days — call to confirm") rather than guessing.
 - **Do not weaken the staff gate.** Any new staff page or action starts with
   `requireStaff()`; any new public endpoint needs its own throttle.
-- **Never commit secrets.** `.dev.vars` and `.env*` are git-ignored; production values
-  live in the hosting environment.
+- **Never commit secrets.** `.dev.vars` and `.env*` are git-ignored; the real
+  connection string and inbox password live in the server's environment.
 
 `web/tests/click-after-scroll.js` is a browser helper for manual checks: it scrolls
 with `behavior: 'instant'` and hit-tests the pointer before clicking, because the
@@ -219,11 +230,12 @@ whatever the page has scrolled past. Paste it into the devtools console and call
 ## Deploying
 
 - **Static site** → upload the contents of `dist/` to `public_html` on cPanel.
-- **Next app** → Cloudflare Workers via OpenNext, with D1 and `INBOX_PASSWORD` as a
-  secret.
+- **Next app** → a Node.js host (VPS, platform app, or any server that can run
+  `npm run build` and `npm start`) with `MONGODB_URI` and `INBOX_PASSWORD` in its
+  environment, talking to the same MongoDB Atlas cluster.
 
-Both paths, including secrets, database setup and first-deploy checks, are in
-[`docs/deployment.md`](docs/deployment.md).
+Both paths, including Atlas network access, secrets, seeding and first-deploy checks,
+are in [`docs/deployment.md`](docs/deployment.md).
 
 ---
 
@@ -231,10 +243,11 @@ Both paths, including secrets, database setup and first-deploy checks, are in
 
 | Document | Covers |
 | --- | --- |
-| [`docs/architecture.md`](docs/architecture.md) | Request flow, D1 binding, data model, staff auth, revalidation, client components |
+| [`docs/architecture.md`](docs/architecture.md) | Request flow, MongoDB access, data model, staff auth, revalidation, client components |
 | [`docs/staff-guide.md`](docs/staff-guide.md) | What each staff screen does and the rules it follows |
-| [`docs/deployment.md`](docs/deployment.md) | Local setup, secrets, Cloudflare and cPanel deployment, backups |
+| [`docs/deployment.md`](docs/deployment.md) | Local setup, Atlas, secrets, Node hosting, cPanel, backups |
 | [`docs/static-site.md`](docs/static-site.md) | The static deliverable in depth: cPanel publishing, `send.php`, design tokens, accessibility, pre-launch content checklist |
+| [`web/db/DATA-MODEL.md`](web/db/DATA-MODEL.md) | Collections, indexes and the fields that exist for a reason |
 | [`FIGMA.md`](FIGMA.md) | The Figma design plugin |
 
 ---

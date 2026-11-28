@@ -1,24 +1,24 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { getDb } from './d1';
+import { envValue } from './env';
+import { getDb, nowIso } from './mongo';
 
 /**
  * Staff inbox: access check and queries.
  *
  * The inbox is gated by a single shared password held in the environment
- * (`INBOX_PASSWORD`, from .dev.vars locally and Sites → Secrets in production).
- * A correct password sets an http-only cookie holding its digest, so no secret
- * is ever sent back to the browser. There is no per-user account: this is a
- * front-desk tool, not a clinician portal, and it must not be exposed without a
- * password set.
+ * (`INBOX_PASSWORD`, from .dev.vars locally and the server environment in
+ * production). A correct password sets an http-only cookie holding its digest,
+ * so no secret is ever sent back to the browser. There is no per-user account:
+ * this is a front-desk tool, not a clinician portal, and it must not be exposed
+ * without a password set.
  */
 
 const COOKIE = 'sgh_inbox';
 
 /** Failed attempts allowed per client before sign-in is refused for a while. */
 const MAX_ATTEMPTS = 5;
-const ATTEMPT_WINDOW = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-15 minutes')";
+const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
 
 export type MessageStatus = 'new' | 'read' | 'archived';
 
@@ -34,7 +34,7 @@ export type InboxMessage = {
   createdAt: string;
 };
 
-type MessageRow = {
+type MessageDoc = {
   id: number;
   name: string;
   email: string;
@@ -46,10 +46,13 @@ type MessageRow = {
   created_at: string;
 };
 
+type AttemptDoc = {
+  key: string;
+  attempted_at: string;
+};
+
 export async function inboxPassword(): Promise<string> {
-  const { env } = await getCloudflareContext({ async: true });
-  const value = (env as { INBOX_PASSWORD?: string }).INBOX_PASSWORD;
-  return typeof value === 'string' ? value.trim() : '';
+  return envValue('INBOX_PASSWORD');
 }
 
 async function token(password: string): Promise<string> {
@@ -94,14 +97,13 @@ async function attemptKey(password: string): Promise<string> {
 /** Failures in the window for this key, after pruning older rows. */
 async function recentFailures(key: string): Promise<number> {
   const db = await getDb();
-  await db.prepare(`DELETE FROM login_attempts WHERE attempted_at < ${ATTEMPT_WINDOW}`).run();
+  const cutoff = new Date(Date.now() - ATTEMPT_WINDOW_MS).toISOString();
 
-  const result = await db
-    .prepare('SELECT count(*) AS n FROM login_attempts WHERE key = ?')
-    .bind(key)
-    .all<{ n: number }>();
+  await db
+    .collection<AttemptDoc>('login_attempts')
+    .deleteMany({ attempted_at: { $lt: cutoff } });
 
-  return result.results?.[0]?.n ?? 0;
+  return db.collection<AttemptDoc>('login_attempts').countDocuments({ key });
 }
 
 export async function signIn(password: string): Promise<SignInResult> {
@@ -127,7 +129,9 @@ export async function signIn(password: string): Promise<SignInResult> {
   if (!sameSecret(digest, await token(expected))) {
     try {
       const db = await getDb();
-      await db.prepare('INSERT INTO login_attempts (key) VALUES (?)').bind(key).run();
+      await db
+        .collection<AttemptDoc>('login_attempts')
+        .insertOne({ key, attempted_at: nowIso() });
     } catch (error) {
       console.error('inbox attempt record failed', error);
     }
@@ -136,7 +140,7 @@ export async function signIn(password: string): Promise<SignInResult> {
 
   try {
     const db = await getDb();
-    await db.prepare('DELETE FROM login_attempts WHERE key = ?').bind(key).run();
+    await db.collection<AttemptDoc>('login_attempts').deleteMany({ key });
   } catch (error) {
     console.error('inbox attempt reset failed', error);
   }
@@ -166,16 +170,14 @@ export async function signOut(): Promise<void> {
 export async function listMessages(): Promise<InboxMessage[]> {
   const db = await getDb();
 
-  const result = await db
-    .prepare(
-      `SELECT id, name, email, phone, subject, body, note, status, created_at
-         FROM messages
-        ORDER BY created_at DESC, id DESC
-        LIMIT 200`
-    )
-    .all<MessageRow>();
+  const rows = await db
+    .collection<MessageDoc>('messages')
+    .find({})
+    .sort({ created_at: -1, id: -1 })
+    .limit(200)
+    .toArray();
 
-  return (result.results ?? []).map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     name: row.name,
     email: row.email,
@@ -191,18 +193,14 @@ export async function listMessages(): Promise<InboxMessage[]> {
 /** Unread count for the staff navigation bar. */
 export async function countNewMessages(): Promise<number> {
   const db = await getDb();
-  const result = await db
-    .prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'")
-    .all<{ n: number }>();
-
-  return result.results?.[0]?.n ?? 0;
+  return db.collection<MessageDoc>('messages').countDocuments({ status: 'new' });
 }
 
 export async function setMessageStatus(id: number, status: MessageStatus): Promise<void> {
   if (!Number.isInteger(id) || id <= 0) return;
 
   const db = await getDb();
-  await db.prepare('UPDATE messages SET status = ? WHERE id = ?').bind(status, id).run();
+  await db.collection<MessageDoc>('messages').updateOne({ id }, { $set: { status } });
 }
 
 export async function setMessageNote(id: number, note: string): Promise<void> {
@@ -210,5 +208,7 @@ export async function setMessageNote(id: number, note: string): Promise<void> {
 
   const trimmed = note.trim().slice(0, 500);
   const db = await getDb();
-  await db.prepare('UPDATE messages SET note = ? WHERE id = ?').bind(trimmed || null, id).run();
+  await db
+    .collection<MessageDoc>('messages')
+    .updateOne({ id }, { $set: { note: trimmed || null } });
 }

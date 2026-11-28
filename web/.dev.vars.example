@@ -1,3 +1,9 @@
 # Local development secrets (never deployed). Copy to .dev.vars.
+#
+# MongoDB Atlas connection string for the staff database. The password belongs
+# in the string itself; the database name is optional (the app uses
+# `summit_general_hospital` when the path is empty).
+MONGODB_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority"
+
 # The staff inbox at /inbox and /inbox/login requires this to be set.
 INBOX_PASSWORD="choose-a-long-front-desk-password"

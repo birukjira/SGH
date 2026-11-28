@@ -3,7 +3,7 @@
 Two things can be deployed from this repository, independently:
 
 1. the **static site** (`dist/`) to ordinary cPanel hosting, and
-2. the **Next.js app** (`web/`) to Cloudflare Workers, where it has the database and
+2. the **Next.js app** (`web/`) to a Node.js host, where it has the database and the
    staff inbox.
 
 They look the same because they share the CSS and assets, but only the Next app has
@@ -22,9 +22,9 @@ python3 -m http.server 8787 --directory dist
 
 ```bash
 cd web
-cp .dev.vars.example .dev.vars     # set INBOX_PASSWORD to something long
+cp .dev.vars.example .dev.vars     # set MONGODB_URI and INBOX_PASSWORD
 npm install
-npm run db:local                   # creates the local D1 database and seeds it
+npm run db:setup                   # creates collections, indexes and seed content
 npm run dev                        # http://localhost:3100
 ```
 
@@ -32,12 +32,22 @@ npm run dev                        # http://localhost:3100
 images, fonts and the icon sprite into `web/public/`. Those outputs are git-ignored;
 `src/` is the source of truth.
 
-The local database is Wrangler's Miniflare state in `web/.wrangler/`. Reset it at any
-time with `npm run db:local` (schema and seed are idempotent), or inspect it with:
+The database is MongoDB Atlas, so the app needs a reachable cluster before any page
+that reads content will render:
 
-```bash
-npx wrangler d1 execute DB --local --command "SELECT id, name, is_active FROM doctors"
-```
+1. Create a free cluster and a database user in Atlas.
+2. Add your IP under **Network Access**. Atlas rejects connections from an IP that is
+   not allowed at the TLS handshake, which the app reports as a
+   `MongoServerSelectionError` (and an SSL alert in the driver's cause) rather than a
+   login error.
+3. Copy the driver connection string — the one with the password in it — into
+   `MONGODB_URI` in `web/.dev.vars`. Leave the database path empty to use
+   `summit_general_hospital`, or name one explicitly.
+
+`npm run db:setup` creates the collections and indexes, upserts the seeded
+departments, consultants, services and testimonials, and initialises the id counters.
+Running it again is harmless: seeded content is matched by `id`, and requests,
+messages and anything staff added are left alone.
 
 Open `/inbox` and sign in with the `INBOX_PASSWORD` from `web/.dev.vars`.
 
@@ -50,51 +60,62 @@ Open `/inbox` and sign in with the `INBOX_PASSWORD` from `web/.dev.vars`.
 | `npm run start` | serve the production build on port 3100 |
 | `npm run assets` | recompile CSS/sprite and copy images and fonts |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run db:local` | apply `db/schema.sql` + `db/seed.sql` to the local D1 |
-| `npm run db:remote` | apply the same files to the deployed D1 database |
+| `npm run db:setup` | create collections/indexes and seed content in MongoDB |
 
-## Cloudflare (the app with a back end)
+## MongoDB Atlas (the database)
 
-The app deploys as a Worker built by OpenNext (`@opennextjs/cloudflare`), with D1 as
-the database. `wrangler.jsonc` declares the `DB` binding and the compatibility date.
+The app opens one pooled connection per process from `MONGODB_URI`
+(`web/lib/mongo.ts`) and uses the `summit_general_hospital` database by default.
+
+### Checklist
+
+1. **Cluster** — any tier works; the free tier is enough for a hospital front desk.
+   A paused cluster refuses connections, so resume it first.
+2. **Database user** — a user with read/write on this database, not an admin user for
+   day-to-day traffic.
+3. **Network access** — the app server's public IP must be allowed. Add the hosting
+   provider's egress IP (or its range) rather than `0.0.0.0/0`; Atlas shows the denied
+   IP in its connection log if you are unsure which one to add. Locally, add your own
+   IP.
+4. **Seed** — run `npm run db:setup` once from a machine that can reach the cluster
+   (locally is fine; it writes to whatever `MONGODB_URI` points at).
+5. **Indexes** — created by the same script. `reference` on `appointments` and `slug`
+   on `doctors`/`services` must stay unique.
 
 ### Secrets
 
 | Name | Where | Purpose |
 | --- | --- | --- |
-| `INBOX_PASSWORD` | Worker secret: `npx wrangler secret put INBOX_PASSWORD`, or the Cloudflare dashboard | the staff inbox password |
+| `MONGODB_URI` | the host's environment (systemd unit, platform dashboard, or `.env` outside git) | cluster connection string, password included |
+| `INBOX_PASSWORD` | the host's environment | the staff inbox password |
 
-Nothing else is required. `.dev.vars` holds the local value only and is git-ignored;
-never commit a real password.
+`web/.dev.vars` holds local values only and is git-ignored; never commit a real
+connection string or password. Because the URI contains the database password, treat
+the host's environment file as a secret: `chmod 600`, owned by the app user, and not
+readable by other accounts.
 
-### Database
+## Node hosting (the app with a back end)
 
-1. Create the D1 database and put its id in `wrangler.jsonc` (already done for the
-   `summit-general-hospital` database).
-2. Apply the schema and seed: `npm run db:remote`.
-3. Deploy (below). The Worker reads the same `DB` binding; `lib/d1.ts` requires no change.
-
-### Deploy
-
-`wrangler.jsonc` points the Worker at `.open-next/worker.js`, which OpenNext produces.
-`open-next.config.ts` holds the adapter settings. From `web/`:
+MongoDB needs a long-lived TCP connection, so the app runs as a normal Node server —
+not on an edge/Worker runtime. Any host that can run Node 20+ works: a small VPS, a
+platform app (Railway, Render, Fly, a managed Node service), or a hospital server.
 
 ```bash
-npx opennextjs-cloudflare build     # npm run build, then adapts the output
-npx opennextjs-cloudflare deploy    # upload to Cloudflare Workers
+cd web
+npm ci
+npm run build                      # assets + next build
+MONGODB_URI='mongodb+srv://…' INBOX_PASSWORD='…' npm start   # http://localhost:3100
 ```
 
-The OpenNext build runs `npm run build` first, so the CSS and asset step happens too.
-`npm run build` alone is only the Next.js build; it is not the Worker. To run the
-built Worker locally under Wrangler before deploying:
-
-```bash
-npx opennextjs-cloudflare build
-npx opennextjs-cloudflare preview    # http://localhost:8787
-```
-
-The preview reads the same local D1 state as `next dev`, so run `npm run db:local`
-first; without the schema every database-backed page returns a 500.
+- `npm start` is `next start -p 3100`; put a reverse proxy (nginx, Caddy, the
+  platform's router) in front of it for TLS on port 443.
+- Set `NODE_ENV=production` (platforms do this already) so the staff cookie is marked
+  `Secure`.
+- Keep one app process behind the proxy, or make sure your platform does not scale to
+  many instances needlessly: each process holds its own connection pool.
+- The build is self-contained in `web/`; the static site's `dist/` is not needed.
+- Restart the process after changing environment variables — `lib/env.ts` reads them
+  at startup.
 
 ### First-deploy checks
 
@@ -119,11 +140,15 @@ are delivered by `send.php`. Full detail, including the Site Builder warning, is
 
 ## Backups
 
-The D1 database is the only stateful part of the app. Export it before any migration
-or bulk edit:
+The MongoDB database is the only stateful part of the app. Export it before any
+migration or bulk edit:
 
 ```bash
-npx wrangler d1 export DB --remote --output backup-$(date +%F).sql
+mongodump --uri "$MONGODB_URI" --out "backup-$(date +%F)"
 ```
 
-Keep a copy outside the repository; the exports contain patient contact details.
+Restore with `mongorestore --uri "$MONGODB_URI" --drop "backup-YYYY-MM-DD"`. Take
+these dumps somewhere outside the repository — they contain patient contact details.
+Atlas' own continuous/cloud backups are a paid-cluster feature; on the free tier the
+dump above is the backup, so schedule it (cron or the host's scheduler) rather than
+relying on the cluster.

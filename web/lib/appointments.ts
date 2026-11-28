@@ -1,14 +1,14 @@
-import { getDb } from './d1';
+import { getDb, nextId, nowIso } from './mongo';
 import { appointmentErrors, type AppointmentInput, type AppointmentResult } from './appointment-slots';
 
 /**
  * Appointment requests. The browser form is convenience only: everything is
- * re-validated here before a row is written, and the short reference is what
- * the front desk quotes on the phone.
+ * re-validated here before a document is written, and the short reference is
+ * what the front desk quotes on the phone.
  */
 
 const PER_PHONE_PER_HOUR = 3;
-const HOUR_AGO = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour')";
+const HOUR_MS = 60 * 60 * 1000;
 
 function reference(): string {
   const stamp = Date.now().toString(36).toUpperCase();
@@ -34,13 +34,15 @@ export async function requestAppointment(
 
   try {
     const db = await getDb();
+    const appointments = db.collection('appointments');
 
-    const recent = await db
-      .prepare(`SELECT count(*) AS n FROM appointments WHERE phone = ? AND created_at > ${HOUR_AGO}`)
-      .bind(phone)
-      .all<{ n: number }>();
+    const since = new Date(Date.now() - HOUR_MS).toISOString();
+    const recent = await appointments.countDocuments({
+      phone,
+      created_at: { $gt: since },
+    });
 
-    if ((recent.results?.[0]?.n ?? 0) >= PER_PHONE_PER_HOUR) {
+    if (recent >= PER_PHONE_PER_HOUR) {
       return {
         ok: false,
         message:
@@ -49,28 +51,32 @@ export async function requestAppointment(
     }
 
     const ref = reference();
+    const firstName = input.firstName.trim();
+    const lastName = input.lastName.trim();
 
-    await db
-      .prepare(
-        `INSERT INTO appointments
-           (reference, department, doctor, visit_type, preferred_date, preferred_time,
-            first_name, last_name, phone, email, reason, consent)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
-      )
-      .bind(
-        ref,
-        input.department,
-        input.doctor || null,
-        input.visitType,
-        input.preferredDate,
-        input.preferredTime,
-        input.firstName.trim(),
-        input.lastName.trim(),
-        phone,
-        input.email.trim() || null,
-        input.reason.trim() || null
-      )
-      .run();
+    await appointments.insertOne({
+      id: await nextId(db, 'appointments'),
+      reference: ref,
+      department: input.department,
+      doctor: input.doctor || null,
+      visit_type: input.visitType,
+      preferred_date: input.preferredDate,
+      preferred_time: input.preferredTime,
+      first_name: firstName,
+      last_name: lastName,
+      // Derived fields so the queue's search can match a full name and a
+      // phone number typed without spaces, dashes or a plus sign.
+      patient_name: `${firstName} ${lastName}`,
+      phone,
+      phone_digits: phone.replace(/[^0-9]/g, ''),
+      email: input.email.trim() || null,
+      reason: input.reason.trim() || null,
+      note: null,
+      consent: 1,
+      status: 'new',
+      handled_at: null,
+      created_at: nowIso(),
+    });
 
     return {
       ok: true,

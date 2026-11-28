@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -22,9 +21,5 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-
-// Makes the D1 binding in wrangler.jsonc available to `next dev`
-// (via Wrangler's local Miniflare state). No effect on the build.
-initOpenNextCloudflareForDev({ configPath: './wrangler.jsonc' });
 
 export default nextConfig;
