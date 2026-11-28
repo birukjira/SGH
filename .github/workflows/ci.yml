@@ -25,5 +25,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Front-desk alert test
+        run: npm run test:notify
+
       - name: Production build
         run: npm run build

@@ -1,5 +1,6 @@
 import { after } from 'next/server';
 import { envValue } from './env';
+import { SITE_URL } from './site';
 
 /**
  * Front-desk email alerts for new requests.
@@ -61,7 +62,11 @@ async function alertFrontDesk(alert: FrontDeskAlert): Promise<void> {
         from,
         to: [to],
         subject: alert.subject,
-        text: [...alert.lines, '', 'Open the staff inbox for the full request: /inbox'].join('\n'),
+        // The inbox link is absolute and on its own line: staff read this outside
+        // the app, so it has to be clickable straight from the email.
+        text: [...alert.lines, '', 'Open the staff inbox for the full request:', `${SITE_URL}/inbox`].join(
+          '\n'
+        ),
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });

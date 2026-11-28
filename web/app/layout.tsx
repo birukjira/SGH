@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ContactRail } from '@/components/ContactRail';
+import { SITE_URL } from '@/lib/site';
 
-const SITE_URL = 'https://summitgeneralhospital.com';
 const DESCRIPTION =
   'A general hospital in Summit 72, Lemi Kura, Addis Ababa, offering 24/7 emergency care, consultant-led outpatient clinics, surgery, maternity, diagnostics and pharmacy services.';
 

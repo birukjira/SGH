@@ -71,6 +71,10 @@ To turn them on: create an API key at the mail provider, verify the sending doma
 in the host's environment. Send one real request from the public form and confirm the
 email arrives before relying on it.
 
+`npm run test:notify` checks the payload offline (`fetch` is stubbed): that a configured
+alert posts the right recipient, sender, subject and inbox link, and that an unset key or
+recipient sends nothing. It does not test real delivery — only a live key can do that.
+
 ### Staff smoke test
 
 With the app running (`npm run dev` or `npm start`), `npm run test:smoke` in `web/`
@@ -97,6 +101,7 @@ Counter documents advance with each run; ids stay unique and are never reused.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:setup` | create collections/indexes and seed content in MongoDB |
 | `npm run test:smoke` | end-to-end staff write checks against a running app (see below) |
+| `npm run test:notify` | checks the front-desk alert payload and its no-op path, with `fetch` stubbed |
 
 ## MongoDB Atlas (the database)
 

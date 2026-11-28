@@ -8,6 +8,7 @@
     "start": "next start -p 3100",
     "typecheck": "tsc --noEmit",
     "test:smoke": "node scripts/smoke.mjs",
+    "test:notify": "tsx scripts/notify.test.mjs",
     "assets": "node scripts/build-assets.mjs",
     "db:setup": "node db/setup.mjs"
   },
@@ -21,6 +22,7 @@
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }

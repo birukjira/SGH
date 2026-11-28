@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-const SITE_URL = 'https://summitgeneralhospital.com';
+import { SITE_URL } from '@/lib/site';
 
 /**
  * The public pages of the Next app. `/inbox` is deliberately absent: staff
